@@ -1,0 +1,195 @@
+//
+//  CultureService.swift
+//  NusaLens
+//
+
+import Foundation
+import FirebaseFirestore
+import Combine
+
+@MainActor
+class CultureService: ObservableObject {
+    @Published var items: [Budaya] = []
+    @Published var isLoading = false
+    @Published var errorMessage: String? = nil
+    
+    private var db: Firestore?
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        // Initialize Firebase if configured
+        if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
+            db = Firestore.firestore()
+        }
+        
+        fetchItems()
+    }
+    
+    func fetchItems() {
+        isLoading = true
+        errorMessage = nil
+        
+        // If Firestore is available, fetch from Firestore
+        if let db = db {
+            db.collection("budaya").addSnapshotListener { [weak self] querySnapshot, error in
+                guard let self = self else { return }
+                
+                Task { @MainActor in
+                    self.isLoading = false
+                    
+                    if let error = error {
+                        self.errorMessage = error.localizedDescription
+                        // Fallback to mock data on Firestore fetch failure
+                        self.loadMockData()
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        self.loadMockData()
+                        return
+                    }
+                    
+                    let fetchedItems = documents.compactMap { document -> Budaya? in
+                        try? document.data(as: Budaya.self)
+                    }
+                    
+                    if fetchedItems.isEmpty {
+                        // If Firestore is empty, load mock data
+                        self.loadMockData()
+                    } else {
+                        self.items = fetchedItems
+                    }
+                }
+            }
+        } else {
+            // Firestore not configured, load mock data immediately
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self = self else { return }
+                Task { @MainActor in
+                    self.isLoading = false
+                    self.loadMockData()
+                }
+            }
+        }
+    }
+    
+    private func loadMockData() {
+        self.items = [
+            Budaya(
+                id: "batik",
+                name: "Batik",
+                description: "Batik adalah kerajinan seni lukis kain khas Indonesia yang menggunakan malam (lilin) dan canting untuk membuat pola-pola hiasan. Setiap motif batik sarat akan makna filosofis mendalam tentang kehidupan, alam, spiritualitas, dan budaya masyarakat Jawa. Pada tanggal 2 Oktober 2009, UNESCO secara resmi menetapkan Batik sebagai Mahakarya Warisan Kemanusiaan Lisan dan Nonbendawi.",
+                category: .pakaianAdat,
+                province: "Jawa Tengah",
+                region: "Jawa",
+                imageUrl: "https://images.unsplash.com/photo-1590736969955-71cc94801759?auto=format&fit=crop&q=80&w=600",
+                latitude: -7.5000,
+                longitude: 110.0000
+            ),
+            Budaya(
+                id: "angklung",
+                name: "Angklung",
+                description: "Angklung adalah alat musik tradisional multitonal (nada ganda) yang berasal dari masyarakat Sunda di Jawa Barat. Alat musik ini terbuat dari tabung bambu yang dipotong sedemikian rupa sehingga menghasilkan bunyi getar ketika digoyangkan. Setiap instrumen menghasilkan satu nada tunggal, sehingga untuk memainkannya secara melodis dibutuhkan kerja sama kelompok yang solid, mengajarkan nilai gotong royong.",
+                category: .alatMusik,
+                province: "Jawa Barat",
+                region: "Jawa",
+                imageUrl: "https://images.unsplash.com/photo-1614963326505-843867e2d8be?auto=format&fit=crop&q=80&w=600",
+                latitude: -6.9175,
+                longitude: 107.6191
+            ),
+            Budaya(
+                id: "rendang",
+                name: "Rendang",
+                description: "Rendang adalah kuliner legendaris khas Minangkabau yang berbahan dasar daging sapi dan dimasak menggunakan santan serta campuran rempah-rempah yang melimpah selama berjam-jam. Proses memasak yang lama membuat rendang dapat bertahan lama. Rendang kaya akan filosofi bagi masyarakat Minang, melambangkan musyawarah (daging), alim ulama (kelapa), dan cerdik pandai (rempah).",
+                category: .kuliner,
+                province: "Sumatera Barat",
+                region: "Sumatra",
+                imageUrl: "https://images.unsplash.com/photo-1626804475315-76c2494191d8?auto=format&fit=crop&q=80&w=600",
+                latitude: -0.9471,
+                longitude: 100.4172
+            ),
+            Budaya(
+                id: "tari_saman",
+                name: "Tari Saman",
+                description: "Tari Saman adalah salah satu tarian adat paling terkenal dari suku Gayo di Provinsi Aceh. Tarian ini dicirikan oleh gerakan ritmis tangan, pundak, dan kepala penari yang sangat cepat, kompak, dan harmonis sambil duduk bersimpuh. Tanpa iringan alat musik eksternal, melodi tarian ini bersumber dari suara tepukan tangan penari dan lantunan syair selawat yang bernafaskan dakwah Islam.",
+                category: .seniPertunjukan,
+                province: "Aceh",
+                region: "Sumatra",
+                imageUrl: "https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&q=80&w=600",
+                latitude: 4.6951,
+                longitude: 96.7494
+            ),
+            Budaya(
+                id: "rumah_gadang",
+                name: "Rumah Gadang",
+                description: "Rumah Gadang adalah rumah adat tradisional suku Minangkabau di Sumatera Barat. Ciri khas paling mencolok dari arsitektur Rumah Gadang adalah bentuk atapnya yang melengkung tajam menyerupai tanduk kerbau (disebut gonjong). Rumah panggung kayu ini dirancang dengan struktur tahan gempa berkat sistem pasak kayu tanpa paku besi yang fleksibel saat terjadi guncangan tanah.",
+                category: .rumahAdat,
+                province: "Sumatera Barat",
+                region: "Sumatra",
+                imageUrl: "https://images.unsplash.com/photo-1605538032432-a9f0c8d9baac?auto=format&fit=crop&q=80&w=600",
+                latitude: -0.9000,
+                longitude: 100.3500
+            ),
+            Budaya(
+                id: "tari_kecak",
+                name: "Tari Kecak",
+                description: "Tari Kecak adalah seni tari drama musikal khas Bali yang menceritakan kisah Ramayana. Tarian ini dimainkan oleh puluhan penari pria yang duduk melingkar di sekeliling api unggun sambil mengangkat kedua tangan mereka dan meneriakkan paduan suara ritmis 'cak-cak-cak-cak'. Musik tarian ini unik karena seluruhnya dibentuk oleh ritme vokal para penari tanpa instrumen gamelan.",
+                category: .seniPertunjukan,
+                province: "Bali",
+                region: "Bali",
+                imageUrl: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=600",
+                latitude: -8.4095,
+                longitude: 115.1889
+            ),
+            Budaya(
+                id: "tongkonan",
+                name: "Rumah Tongkonan",
+                description: "Tongkonan adalah rumah adat megah masyarakat suku Toraja di Sulawesi Selatan. Rumah panggung ini memiliki atap melengkung berbentuk perahu yang ujungnya menjulang ke atas secara simetris. Bagian depan Tongkonan dihiasi dengan tumpukan tanduk kerbau yang melambangkan status sosial dan kemakmuran keluarga pemilik rumah, serta dihiasi ukiran kayu warna-warni.",
+                category: .rumahAdat,
+                province: "Sulawesi Selatan",
+                region: "Sulawesi",
+                imageUrl: "https://images.unsplash.com/photo-1540206395-68808572332f?auto=format&fit=crop&q=80&w=600",
+                latitude: -3.1044,
+                longitude: 119.8974
+            ),
+            Budaya(
+                id: "sasando",
+                name: "Sasando",
+                description: "Sasando adalah alat musik dawai tradisional petik yang berasal dari Pulau Rote di Nusa Tenggara Timur. Keunikan sasando terletak pada bagian resonansi suaranya yang terbuat dari rajutan daun pohon lontar yang melengkung setengah lingkaran. Suara dawai yang dihasilkan menyerupai kombinasi gitar, kecapi, dan harpa, menghasilkan melodi yang sangat indah dan syahdu.",
+                category: .alatMusik,
+                province: "Nusa Tenggara Timur",
+                region: "Nusa Tenggara",
+                imageUrl: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=600",
+                latitude: -10.1772,
+                longitude: 123.6070
+            )
+        ]
+    }
+    
+    func seedDatabase() {
+        guard let db = db else { return }
+        for item in items {
+            do {
+                try db.collection("budaya").document(item.id).setData(from: item)
+                print("Successfully uploaded \(item.name)")
+            } catch {
+                print("Error uploading \(item.name): \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func addBudaya(_ item: Budaya) {
+        // If offline mode, just append to items
+        guard let db = db else {
+            items.append(item)
+            return
+        }
+        
+        do {
+            try db.collection("budaya").document(item.id).setData(from: item)
+            print("Successfully saved new budaya: \(item.name)")
+        } catch {
+            print("Error saving new budaya: \(error.localizedDescription)")
+        }
+    }
+}
