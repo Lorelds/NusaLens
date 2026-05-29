@@ -10,35 +10,35 @@ struct BudayaCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // Strict 4:3 Container
             ZStack(alignment: .topTrailing) {
-                AsyncImage(url: URL(string: item.imageUrl)) { phase in
-                    switch phase {
-                    case .empty:
-                        Rectangle()
-                            .fill(Color(.systemGray6))
-                            .overlay(
-                                ProgressView()
-                                    .tint(.accentColor)
-                            )
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    case .failure:
-                        Rectangle()
-                            .fill(Color(.systemGray5))
-                            .overlay(
-                                Image(systemName: "photo")
-                                    .foregroundStyle(.secondary)
-                                    .font(.title)
-                            )
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
-                .aspectRatio(4/3, contentMode: .fill)
-                .frame(minWidth: 0, maxWidth: .infinity)
-                .clipped()
+                Color.clear
+                    .aspectRatio(4/3, contentMode: .fit)
+                    .overlay(
+                        AsyncImage(url: URL(string: item.imageUrl)) { phase in
+                            switch phase {
+                            case .empty:
+                                ZStack {
+                                    Color(.systemGray6)
+                                    ProgressView().tint(.accentColor)
+                                }
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            case .failure:
+                                ZStack {
+                                    Color(.systemGray5)
+                                    Image(systemName: "photo")
+                                        .foregroundStyle(.secondary)
+                                        .font(.title)
+                                }
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    )
+                    .clipped()
                 
                 Image(systemName: item.category.iconName)
                     .font(.caption2)
