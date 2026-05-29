@@ -6,7 +6,7 @@
 import SwiftUI
 
 struct CultureExplorerView: View {
-    @StateObject private var service = CultureService()
+    @EnvironmentObject var service: CultureService
     @State private var searchText = ""
     @State private var selectedCategory: CulturalCategory? = nil
     @State private var showingAddView = false

@@ -7,14 +7,14 @@ import SwiftUI
 import MapKit
 
 struct ProvinceMarker: Identifiable {
-    let id: String // Province name
+    var id: String { "\(name)-\(itemCount)" }
     let name: String
     let coordinate: CLLocationCoordinate2D
     let itemCount: Int
 }
 
 struct InteractiveMapView: View {
-    @StateObject private var service = CultureService()
+    @EnvironmentObject var service: CultureService
     
     // Initial camera position centered on Indonesia
     @State private var cameraPosition = MapCameraPosition.region(MKCoordinateRegion(
@@ -33,7 +33,6 @@ struct InteractiveMapView: View {
         for (province, items) in grouped {
             if let firstItem = items.first {
                 markers.append(ProvinceMarker(
-                    id: province,
                     name: province,
                     coordinate: firstItem.coordinate,
                     itemCount: items.count
@@ -103,7 +102,7 @@ struct InteractiveMapView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showSheet, onDismiss: { selectedProvince = nil }) {
                 if let province = selectedProvince {
-                    ProvinceCulturalListView(province: province, items: itemsInSelectedProvince)
+                    ProvinceCulturalListView(province: province, service: service)
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
                 }
@@ -115,8 +114,12 @@ struct InteractiveMapView: View {
 // Subview representing the bottom sheet content
 struct ProvinceCulturalListView: View {
     let province: String
-    let items: [Budaya]
+    @ObservedObject var service: CultureService
     @Environment(\.dismiss) private var dismiss
+    
+    var items: [Budaya] {
+        service.items.filter { $0.province == province }
+    }
     
     var body: some View {
         NavigationStack {
