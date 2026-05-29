@@ -13,11 +13,8 @@ struct AddBudayaView: View {
     @State private var name = ""
     @State private var description = ""
     @State private var category: CulturalCategory = .pakaianAdat
-    @State private var province = ""
-    @State private var region = ""
+    @State private var selectedProvince: ProvinceLocation = ProvinceLocation.allProvinces.first(where: { $0.name == "DKI Jakarta" }) ?? ProvinceLocation.allProvinces[0]
     @State private var imageUrl = ""
-    @State private var latitude: Double = 0.0
-    @State private var longitude: Double = 0.0
     
     // Photo Picker State
     @State private var selectedItem: PhotosPickerItem? = nil
@@ -43,8 +40,11 @@ struct AddBudayaView: View {
                             Text(cat.rawValue).tag(cat)
                         }
                     }
-                    TextField("Provinsi", text: $province)
-                    TextField("Regional (ex: Jawa)", text: $region)
+                    Picker("Provinsi", selection: $selectedProvince) {
+                        ForEach(ProvinceLocation.allProvinces) { prov in
+                            Text(prov.name).tag(prov)
+                        }
+                    }
                 }
                 
                 Section(header: Text("Deskripsi")) {
@@ -83,14 +83,6 @@ struct AddBudayaView: View {
                     }
                 }
                 
-                Section(header: Text("Lokasi Peta")) {
-                    TextField("Latitude (ex: -6.2000)", value: $latitude, format: .number)
-                        .keyboardType(.numbersAndPunctuation)
-                    
-                    TextField("Longitude (ex: 106.8166)", value: $longitude, format: .number)
-                        .keyboardType(.numbersAndPunctuation)
-                }
-                
                 if let uploadError {
                     Section {
                         Text(uploadError)
@@ -113,7 +105,7 @@ struct AddBudayaView: View {
                     Button("Simpan") {
                         saveItem()
                     }
-                    .disabled(name.isEmpty || province.isEmpty || description.isEmpty || (selectedImageData == nil && imageUrl.isEmpty) || isUploading)
+                    .disabled(name.isEmpty || description.isEmpty || (selectedImageData == nil && imageUrl.isEmpty) || isUploading)
                 }
             }
             .overlay {
@@ -155,11 +147,11 @@ struct AddBudayaView: View {
                     name: name,
                     description: description,
                     category: category,
-                    province: province,
-                    region: region,
+                    province: selectedProvince.name,
+                    region: selectedProvince.region,
                     imageUrl: finalImageUrl,
-                    latitude: latitude,
-                    longitude: longitude
+                    latitude: selectedProvince.latitude,
+                    longitude: selectedProvince.longitude
                 )
                 
                 cultureService.addBudaya(newItem)
