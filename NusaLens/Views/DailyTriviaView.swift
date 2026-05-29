@@ -9,11 +9,9 @@ struct DailyTriviaView: View {
     @StateObject private var service = TriviaService()
     @StateObject private var cultureService = CultureService()
     
-    // Quiz state
     @State private var selectedOptionIndex: Int? = nil
     @State private var answerSubmitted = false
     
-    // Alert state for permissions
     @State private var showingPermissionAlert = false
     
     var body: some View {
@@ -21,7 +19,6 @@ struct DailyTriviaView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     
-                    // Daily Trivia Quiz Card
                     if let trivia = service.dailyTrivia {
                         VStack(alignment: .leading, spacing: 20) {
                             // Card Header
@@ -38,7 +35,6 @@ struct DailyTriviaView: View {
                             }
                             
                             if trivia.isQuiz, let question = trivia.question, let options = trivia.options {
-                                // Quiz View
                                 Text(question)
                                     .font(.title3)
                                     .fontWeight(.bold)
@@ -88,7 +84,6 @@ struct DailyTriviaView: View {
                                     }
                                 }
                                 
-                                // Action Button
                                 if !answerSubmitted {
                                     Button(action: {
                                         if selectedOptionIndex != nil {
@@ -108,8 +103,6 @@ struct DailyTriviaView: View {
                                     .disabled(selectedOptionIndex == nil)
                                     .padding(.top, 8)
                                 }
-                                
-                                // Explanation
                                 if answerSubmitted, let explanation = trivia.explanation {
                                     VStack(alignment: .leading, spacing: 10) {
                                         Divider()
@@ -128,7 +121,6 @@ struct DailyTriviaView: View {
                                 }
                                 
                             } else {
-                                // Fact Only View
                                 Text(trivia.fact)
                                     .font(.title3)
                                     .fontWeight(.bold)
@@ -140,7 +132,6 @@ struct DailyTriviaView: View {
                         .cornerRadius(20)
                         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
                     } else {
-                        // Loading State
                         VStack {
                             ProgressView()
                             Text("Mengambil trivia...")
@@ -150,7 +141,6 @@ struct DailyTriviaView: View {
                         .frame(height: 200)
                     }
                     
-                    // Reminder Settings Card
                     VStack(alignment: .leading, spacing: 20) {
                         Text("Pengingat Harian")
                             .font(.title3)
@@ -213,7 +203,6 @@ struct DailyTriviaView: View {
         }
     }
     
-    // Helper color logic for choices
     private func buttonBackgroundColor(index: Int, correctIndex: Int) -> Color {
         guard answerSubmitted else {
             return selectedOptionIndex == index ? Color.accentColor.opacity(0.08) : Color(.systemGray6)

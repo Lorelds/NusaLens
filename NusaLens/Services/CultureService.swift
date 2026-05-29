@@ -5,6 +5,7 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseStorage
 import Combine
 
 @MainActor
@@ -191,5 +192,26 @@ class CultureService: ObservableObject {
         } catch {
             print("Error saving new budaya: \(error.localizedDescription)")
         }
+    }
+    
+    func uploadImage(data: Data) async throws -> String {
+        guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else {
+            // Mock mode: return a dummy URL if Firebase isn't actually configured
+            return "https://images.unsplash.com/photo-1590736969955-71cc94801759?auto=format&fit=crop&q=80&w=600"
+        }
+        
+        let storageRef = Storage.storage().reference()
+        let filename = UUID().uuidString + ".jpg"
+        let imageRef = storageRef.child("budaya_images/\(filename)")
+        
+        // Upload the data
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        
+        _ = try await imageRef.putDataAsync(data, metadata: metadata)
+        
+        // Get download URL
+        let downloadURL = try await imageRef.downloadURL()
+        return downloadURL.absoluteString
     }
 }
