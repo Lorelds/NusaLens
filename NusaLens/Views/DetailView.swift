@@ -143,6 +143,7 @@ struct DetailView: View {
                     .padding(.top, 10)
                 }
                 .padding(24)
+                .padding(.bottom, 60) // Extra padding at the bottom so it's not cut off
             }
         }
         .navigationBarTitleDisplayMode(.inline)

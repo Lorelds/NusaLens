@@ -64,7 +64,8 @@ struct AddBudayaView: View {
                             if let data = try? await newItem?.loadTransferable(type: Data.self),
                                let uiImage = UIImage(data: data) {
                                 selectedImage = uiImage
-                                selectedImageData = data
+                                // Kompresi gambar agar proses upload sangat cepat!
+                                selectedImageData = uiImage.jpegData(compressionQuality: 0.2) ?? data
                             }
                         }
                     }
@@ -83,13 +84,7 @@ struct AddBudayaView: View {
                     }
                 }
                 
-                if let uploadError {
-                    Section {
-                        Text(uploadError)
-                            .foregroundStyle(.red)
-                            .font(.caption)
-                    }
-                }
+                // Remove inline error text, using alert instead
             }
             .navigationTitle("Tambah Budaya")
             .navigationBarTitleDisplayMode(.inline)
@@ -126,10 +121,19 @@ struct AddBudayaView: View {
                     }
                 }
             }
+            .alert("Gagal Menyimpan", isPresented: Binding<Bool>(
+                get: { uploadError != nil },
+                set: { if !$0 { uploadError = nil } }
+            )) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(uploadError ?? "Terjadi kesalahan yang tidak diketahui.")
+            }
         }
     }
     
     private func saveItem() {
+        print("DEBUG: Memulai saveItem...")
         isUploading = true
         uploadError = nil
         
@@ -139,9 +143,14 @@ struct AddBudayaView: View {
                 
                 // If a native photo was selected, upload it first
                 if let data = selectedImageData {
+                    print("DEBUG: Mencoba mengunggah gambar ke Storage (Ukuran: \(data.count) bytes)...")
                     finalImageUrl = try await cultureService.uploadImage(data: data)
+                    print("DEBUG: Upload berhasil. URL: \(finalImageUrl)")
+                } else {
+                    print("DEBUG: Tidak ada gambar lokal yang dipilih, menggunakan URL manual: \(finalImageUrl)")
                 }
                 
+                print("DEBUG: Menyiapkan objek Budaya...")
                 let newItem = Budaya(
                     id: generatedId,
                     name: name,
@@ -154,13 +163,17 @@ struct AddBudayaView: View {
                     longitude: selectedProvince.longitude
                 )
                 
+                print("DEBUG: Menyimpan ke Firestore Database...")
                 cultureService.addBudaya(newItem)
+                print("DEBUG: Berhasil disimpan ke Firestore.")
                 
                 await MainActor.run {
+                    print("DEBUG: Mengakhiri proses loading dan menutup sheet...")
                     isUploading = false
                     dismiss()
                 }
             } catch {
+                print("DEBUG: Gagal dengan error: \(error)")
                 await MainActor.run {
                     uploadError = "Gagal mengunggah foto: \(error.localizedDescription)"
                     isUploading = false

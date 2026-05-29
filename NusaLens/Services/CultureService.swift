@@ -180,7 +180,6 @@ class CultureService: ObservableObject {
     }
     
     func addBudaya(_ item: Budaya) {
-        // If offline mode, just append to items
         guard let db = db else {
             items.append(item)
             return
@@ -188,6 +187,10 @@ class CultureService: ObservableObject {
         
         do {
             try db.collection("budaya").document(item.id).setData(from: item)
+            
+            // Perbarui tampilan secara instan tanpa perlu refresh
+            items.insert(item, at: 0)
+            
             print("Successfully saved new budaya: \(item.name)")
         } catch {
             print("Error saving new budaya: \(error.localizedDescription)")
@@ -195,23 +198,42 @@ class CultureService: ObservableObject {
     }
     
     func uploadImage(data: Data) async throws -> String {
-        guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else {
-            // Mock mode: return a dummy URL if Firebase isn't actually configured
-            return "https://images.unsplash.com/photo-1590736969955-71cc94801759?auto=format&fit=crop&q=80&w=600"
+        let url = URL(string: "https://catbox.moe/user/api.php")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        
+        // Param 1: reqtype
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"reqtype\"\r\n\r\n".data(using: .utf8)!)
+        body.append("fileupload\r\n".data(using: .utf8)!)
+        
+        // Param 2: fileToUpload
+        let filename = "\(UUID().uuidString).jpg"
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"fileToUpload\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n".data(using: .utf8)!)
+        
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = body
+        
+        let (responseData, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
         }
         
-        let storageRef = Storage.storage().reference()
-        let filename = UUID().uuidString + ".jpg"
-        let imageRef = storageRef.child("budaya_images/\(filename)")
-        
-        // Upload the data
-        let metadata = StorageMetadata()
-        metadata.contentType = "image/jpeg"
-        
-        _ = try await imageRef.putDataAsync(data, metadata: metadata)
-        
-        // Get download URL
-        let downloadURL = try await imageRef.downloadURL()
-        return downloadURL.absoluteString
+        if httpResponse.statusCode == 200, let urlString = String(data: responseData, encoding: .utf8), urlString.starts(with: "http") {
+            return urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            let errorMsg = String(data: responseData, encoding: .utf8) ?? "Unknown"
+            throw NSError(domain: "CultureService", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Server gratis menolak: \(errorMsg)"])
+        }
     }
 }
