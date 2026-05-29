@@ -10,7 +10,6 @@ struct BudayaCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Image Section
             ZStack(alignment: .topTrailing) {
                 AsyncImage(url: URL(string: item.imageUrl)) { phase in
                     switch phase {
@@ -41,7 +40,6 @@ struct BudayaCardView: View {
                 .frame(minWidth: 0, maxWidth: .infinity)
                 .clipped()
                 
-                // Category Icon Badge
                 Image(systemName: item.category.iconName)
                     .font(.caption2)
                     .fontWeight(.bold)
@@ -54,7 +52,6 @@ struct BudayaCardView: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             
-            // Text Section
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name)
                     .font(.headline)

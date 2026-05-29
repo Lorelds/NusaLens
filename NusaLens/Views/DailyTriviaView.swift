@@ -195,24 +195,6 @@ struct DailyTriviaView: View {
                     .background(Color(.secondarySystemGroupedBackground))
                     .cornerRadius(20)
                     .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
-                    
-                    // Secret Admin Button
-                    Button(action: {
-                        cultureService.seedDatabase()
-                        service.seedDatabase()
-                    }) {
-                        HStack {
-                            Image(systemName: "icloud.and.arrow.up.fill")
-                            Text("Upload Mock Data to Firebase")
-                        }
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red.opacity(0.8))
-                        .cornerRadius(12)
-                    }
-                    .padding(.top, 10)
                 }
                 .padding(20)
             }

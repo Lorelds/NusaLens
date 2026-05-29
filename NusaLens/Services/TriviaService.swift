@@ -32,7 +32,6 @@ class TriviaService: ObservableObject {
         if let savedTime = UserDefaults.standard.object(forKey: "trivia_preferred_time") as? Date {
             preferredTime = savedTime
         } else {
-            // Default to 8:00 AM
             var components = DateComponents()
             components.hour = 8
             components.minute = 0
@@ -128,7 +127,6 @@ class TriviaService: ObservableObject {
     private func selectDailyTrivia() {
         guard !triviaList.isEmpty else { return }
         
-        // Select trivia of the day based on the calendar day hash
         let calendar = Calendar.current
         let dayOfYear = calendar.ordinality(of: .day, in: .year, for: Date()) ?? 1
         let index = dayOfYear % triviaList.count
@@ -141,7 +139,7 @@ class TriviaService: ObservableObject {
                 if settings.authorizationStatus != .authorized {
                     self.notificationsEnabled = false
                     UserDefaults.standard.set(false, forKey: "trivia_notifications_enabled")
-                }
+                }			
             }
         }
     }
