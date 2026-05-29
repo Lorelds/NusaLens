@@ -197,6 +197,45 @@ class CultureService: ObservableObject {
         }
     }
     
+    func updateBudaya(_ item: Budaya) {
+        guard let db = db else {
+            if let index = items.firstIndex(where: { $0.id == item.id }) {
+                items[index] = item
+            }
+            return
+        }
+        
+        do {
+            try db.collection("budaya").document(item.id).setData(from: item)
+            // Perbarui tampilan secara instan
+            if let index = items.firstIndex(where: { $0.id == item.id }) {
+                items[index] = item
+            }
+            print("Successfully updated budaya: \(item.name)")
+        } catch {
+            print("Error updating budaya: \(error.localizedDescription)")
+        }
+    }
+    
+    func deleteBudaya(id: String) {
+        guard let db = db else {
+            items.removeAll { $0.id == id }
+            return
+        }
+        
+        db.collection("budaya").document(id).delete { error in
+            if let error = error {
+                print("Error deleting budaya: \(error.localizedDescription)")
+            } else {
+                // Hapus dari memori lokal agar hilang secara instan di layar
+                DispatchQueue.main.async {
+                    self.items.removeAll { $0.id == id }
+                }
+                print("Successfully deleted budaya")
+            }
+        }
+    }
+    
     func uploadImage(data: Data) async throws -> String {
         let url = URL(string: "https://catbox.moe/user/api.php")!
         var request = URLRequest(url: url)

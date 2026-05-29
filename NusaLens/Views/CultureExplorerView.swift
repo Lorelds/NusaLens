@@ -7,6 +7,7 @@ import SwiftUI
 
 struct CultureExplorerView: View {
     @EnvironmentObject var service: CultureService
+    @EnvironmentObject var authService: AuthService
     @State private var searchText = ""
     @State private var selectedCategory: CulturalCategory? = nil
     @State private var showingAddView = false
@@ -141,9 +142,11 @@ struct CultureExplorerView: View {
             .background(Color(.systemGroupedBackground))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { showingAddView = true }) {
-                        Image(systemName: "plus")
-                            .fontWeight(.semibold)
+                    if authService.isAdmin {
+                        Button(action: { showingAddView = true }) {
+                            Image(systemName: "plus")
+                                .fontWeight(.semibold)
+                        }
                     }
                 }
             }

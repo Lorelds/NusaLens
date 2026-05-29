@@ -7,8 +7,14 @@ import SwiftUI
 import MapKit
 
 struct DetailView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var cultureService: CultureService
+    
     let item: Budaya
     @State private var position: MapCameraPosition
+    @State private var showingEditView = false
+    @State private var showingDeleteAlert = false
     
     init(item: Budaya) {
         self.item = item
@@ -149,6 +155,39 @@ struct DetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .ignoresSafeArea(.container, edges: .top)
         .background(Color(.systemGroupedBackground))
+        .toolbar {
+            if authService.isAdmin {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button(action: { showingEditView = true }) {
+                            Label("Edit Budaya", systemImage: "pencil")
+                        }
+                        
+                        Button(role: .destructive, action: { showingDeleteAlert = true }) {
+                            Label("Hapus", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle.fill")
+                            .foregroundStyle(.white)
+                            .padding(8)
+                            .background(Color.black.opacity(0.5))
+                            .clipShape(Circle())
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingEditView) {
+            EditBudayaView(item: item)
+        }
+        .alert("Hapus Budaya", isPresented: $showingDeleteAlert) {
+            Button("Batal", role: .cancel) { }
+            Button("Hapus", role: .destructive) {
+                cultureService.deleteBudaya(id: item.id)
+                dismiss()
+            }
+        } message: {
+            Text("Apakah Anda yakin ingin menghapus '\(item.name)'? Tindakan ini tidak dapat dibatalkan.")
+        }
     }
 }
 
@@ -165,5 +204,7 @@ struct DetailView: View {
             latitude: -6.9175,
             longitude: 107.6191
         ))
+        .environmentObject(AuthService())
+        .environmentObject(CultureService())
     }
 }

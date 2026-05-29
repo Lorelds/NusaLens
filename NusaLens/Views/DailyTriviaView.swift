@@ -159,7 +159,9 @@ struct DailyTriviaView: View {
                                 if newValue {
                                     service.requestNotificationPermission { granted in
                                         if !granted {
-                                            showingPermissionAlert = true
+                                            DispatchQueue.main.async {
+                                                showingPermissionAlert = true
+                                            }
                                         }
                                     }
                                 } else {
