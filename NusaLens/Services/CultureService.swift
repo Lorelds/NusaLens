@@ -325,7 +325,7 @@ class CultureService: ObservableObject {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
-        
+        //1
         if httpResponse.statusCode == 200, let urlString = String(data: responseData, encoding: .utf8), urlString.starts(with: "http") {
             return urlString.trimmingCharacters(in: .whitespacesAndNewlines)
         } else {
