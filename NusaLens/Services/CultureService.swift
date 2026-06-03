@@ -188,6 +188,57 @@ class CultureService: ObservableObject {
         #endif
     }
     
+    func seedMassiveMockData() {
+        var generatedItems: [Budaya] = []
+        let categories = CulturalCategory.allCases
+        let images = [
+            "https://images.unsplash.com/photo-1590736969955-71cc94801759?auto=format&fit=crop&q=80&w=600",
+            "https://images.unsplash.com/photo-1614963326505-843867e2d8be?auto=format&fit=crop&q=80&w=600",
+            "https://images.unsplash.com/photo-1626804475315-76c2494191d8?auto=format&fit=crop&q=80&w=600",
+            "https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&q=80&w=600",
+            "https://images.unsplash.com/photo-1605538032432-a9f0c8d9baac?auto=format&fit=crop&q=80&w=600"
+        ]
+        
+        for province in ProvinceLocation.allProvinces {
+            for i in 1...20 {
+                let latOffset = Double.random(in: -0.2...0.2)
+                let lonOffset = Double.random(in: -0.2...0.2)
+                let category = categories[i % categories.count]
+                
+                let item = Budaya(
+                    id: UUID().uuidString,
+                    name: "\(category.rawValue) \(province.name) \(i)",
+                    description: "Ini adalah data dummy otomatis untuk \(category.rawValue) khas dari provinsi \(province.name). Warisan budaya ini memiliki nilai sejarah yang sangat penting bagi masyarakat \(province.region).",
+                    category: category,
+                    province: province.name,
+                    region: province.region,
+                    imageUrl: images[i % images.count],
+                    latitude: province.latitude + latOffset,
+                    longitude: province.longitude + lonOffset
+                )
+                generatedItems.append(item)
+            }
+        }
+        
+        // Update UI instantly
+        self.items = generatedItems
+        
+        #if canImport(FirebaseFirestore)
+        if let db = db {
+            print("Uploading \(generatedItems.count) items to Firebase...")
+            // We do a simple loop. It might be slow if there are many, but works for mock data
+            for item in generatedItems {
+                do {
+                    try db.collection("budaya").document(item.id).setData(from: item)
+                } catch {
+                    print("Error uploading: \(error.localizedDescription)")
+                }
+            }
+            print("Upload complete!")
+        }
+        #endif
+    }
+    
     func addBudaya(_ item: Budaya) {
         #if canImport(FirebaseFirestore)
         if let db = db {

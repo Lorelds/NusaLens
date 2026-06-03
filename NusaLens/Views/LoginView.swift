@@ -7,6 +7,7 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var cultureService: CultureService
     @State private var email = ""
     @State private var password = ""
     @State private var isLoginMode = true
@@ -40,6 +41,21 @@ struct LoginView: View {
                             Text("Status: User Biasa")
                                 .font(.headline)
                                 .foregroundStyle(.secondary)
+                        }
+                        
+                        if authService.isAdmin {
+                            Button(action: {
+                                cultureService.seedMassiveMockData()
+                            }) {
+                                Text("Seed Dummy Data (20/Provinsi)")
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.orange)
+                                    .cornerRadius(12)
+                            }
+                            .padding(.top, 10)
                         }
                         
                         Button(action: {
