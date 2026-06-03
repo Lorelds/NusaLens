@@ -159,13 +159,12 @@ struct EditBudayaView: View {
             do {
                 var finalImageUrl = imageUrl
                 
-                // Jika user memilih foto baru
                 if let data = selectedImageData {
                     finalImageUrl = try await cultureService.uploadImage(data: data)
                 }
                 
                 let updatedItem = Budaya(
-                    id: originalItem.id, // Tetap gunakan ID lama
+                    id: originalItem.id,
                     name: name,
                     description: description,
                     category: category,

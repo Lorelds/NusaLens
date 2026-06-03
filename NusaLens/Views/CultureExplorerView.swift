@@ -14,8 +14,7 @@ struct CultureExplorerView: View {
     
     // Grid columns layout
     private let columns = [
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
+        GridItem(.adaptive(minimum: 160), spacing: 16)
     ]
     
     var filteredItems: [Budaya] {

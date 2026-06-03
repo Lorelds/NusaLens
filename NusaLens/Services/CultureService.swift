@@ -4,8 +4,12 @@
 //
 
 import Foundation
+#if canImport(FirebaseFirestore)
 import FirebaseFirestore
+#endif
+#if canImport(FirebaseStorage)
 import FirebaseStorage
+#endif
 import Combine
 
 @MainActor
@@ -14,14 +18,17 @@ class CultureService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
     
+    #if canImport(FirebaseFirestore)
     private var db: Firestore?
+    #endif
     private var cancellables = Set<AnyCancellable>()
     
     init() {
-        // Initialize Firebase if configured
+        #if canImport(FirebaseFirestore)
         if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
             db = Firestore.firestore()
         }
+        #endif
         
         fetchItems()
     }
@@ -30,7 +37,7 @@ class CultureService: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        // If Firestore is available, fetch from Firestore
+        #if canImport(FirebaseFirestore)
         if let db = db {
             db.collection("budaya").addSnapshotListener { [weak self] querySnapshot, error in
                 guard let self = self else { return }
@@ -40,7 +47,6 @@ class CultureService: ObservableObject {
                     
                     if let error = error {
                         self.errorMessage = error.localizedDescription
-                        // Fallback to mock data on Firestore fetch failure
                         self.loadMockData()
                         return
                     }
@@ -55,21 +61,22 @@ class CultureService: ObservableObject {
                     }
                     
                     if fetchedItems.isEmpty {
-                        // If Firestore is empty, load mock data
                         self.loadMockData()
                     } else {
                         self.items = fetchedItems
                     }
                 }
             }
-        } else {
-            // Firestore not configured, load mock data immediately
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                guard let self = self else { return }
-                Task { @MainActor in
-                    self.isLoading = false
-                    self.loadMockData()
-                }
+            return
+        }
+        #endif
+        
+        // Firestore not configured, load mock data immediately
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.isLoading = false
+                self.loadMockData()
             }
         }
     }
@@ -168,6 +175,7 @@ class CultureService: ObservableObject {
     }
     
     func seedDatabase() {
+        #if canImport(FirebaseFirestore)
         guard let db = db else { return }
         for item in items {
             do {
@@ -177,63 +185,62 @@ class CultureService: ObservableObject {
                 print("Error uploading \(item.name): \(error.localizedDescription)")
             }
         }
+        #endif
     }
     
     func addBudaya(_ item: Budaya) {
-        guard let db = db else {
-            items.append(item)
+        #if canImport(FirebaseFirestore)
+        if let db = db {
+            do {
+                try db.collection("budaya").document(item.id).setData(from: item)
+                items.insert(item, at: 0)
+                print("Successfully saved new budaya: \(item.name)")
+            } catch {
+                print("Error saving new budaya: \(error.localizedDescription)")
+            }
             return
         }
-        
-        do {
-            try db.collection("budaya").document(item.id).setData(from: item)
-            
-            // Perbarui tampilan secara instan tanpa perlu refresh
-            items.insert(item, at: 0)
-            
-            print("Successfully saved new budaya: \(item.name)")
-        } catch {
-            print("Error saving new budaya: \(error.localizedDescription)")
-        }
+        #endif
+        items.append(item)
     }
     
     func updateBudaya(_ item: Budaya) {
-        guard let db = db else {
-            if let index = items.firstIndex(where: { $0.id == item.id }) {
-                items[index] = item
+        #if canImport(FirebaseFirestore)
+        if let db = db {
+            do {
+                try db.collection("budaya").document(item.id).setData(from: item)
+                if let index = items.firstIndex(where: { $0.id == item.id }) {
+                    items[index] = item
+                }
+                print("Successfully updated budaya: \(item.name)")
+            } catch {
+                print("Error updating budaya: \(error.localizedDescription)")
             }
             return
         }
-        
-        do {
-            try db.collection("budaya").document(item.id).setData(from: item)
-            // Perbarui tampilan secara instan
-            if let index = items.firstIndex(where: { $0.id == item.id }) {
-                items[index] = item
-            }
-            print("Successfully updated budaya: \(item.name)")
-        } catch {
-            print("Error updating budaya: \(error.localizedDescription)")
+        #endif
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items[index] = item
         }
     }
     
     func deleteBudaya(id: String) {
-        guard let db = db else {
-            items.removeAll { $0.id == id }
+        #if canImport(FirebaseFirestore)
+        if let db = db {
+            db.collection("budaya").document(id).delete { error in
+                if let error = error {
+                    print("Error deleting budaya: \(error.localizedDescription)")
+                } else {
+                    DispatchQueue.main.async {
+                        self.items.removeAll { $0.id == id }
+                    }
+                    print("Successfully deleted budaya")
+                }
+            }
             return
         }
-        
-        db.collection("budaya").document(id).delete { error in
-            if let error = error {
-                print("Error deleting budaya: \(error.localizedDescription)")
-            } else {
-                // Hapus dari memori lokal agar hilang secara instan di layar
-                DispatchQueue.main.async {
-                    self.items.removeAll { $0.id == id }
-                }
-                print("Successfully deleted budaya")
-            }
-        }
+        #endif
+        items.removeAll { $0.id == id }
     }
     
     func uploadImage(data: Data) async throws -> String {

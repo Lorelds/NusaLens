@@ -4,7 +4,9 @@
 //
 
 import Foundation
+#if canImport(FirebaseFirestore)
 import FirebaseFirestore
+#endif
 import UserNotifications
 import Combine
 
@@ -15,12 +17,16 @@ class TriviaService: ObservableObject {
     @Published var notificationsEnabled = false
     @Published var preferredTime = Date()
     
+    #if canImport(FirebaseFirestore)
     private var db: Firestore?
+    #endif
     
     init() {
+        #if canImport(FirebaseFirestore)
         if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
             db = Firestore.firestore()
         }
+        #endif
         
         loadSettings()
         fetchTrivia()
@@ -53,6 +59,7 @@ class TriviaService: ObservableObject {
     }
     
     func fetchTrivia() {
+        #if canImport(FirebaseFirestore)
         if let db = db {
             db.collection("trivia").getDocuments { [weak self] querySnapshot, error in
                 guard let self = self else { return }
@@ -81,9 +88,10 @@ class TriviaService: ObservableObject {
                     }
                 }
             }
-        } else {
-            self.loadMockTrivia()
+            return
         }
+        #endif
+        self.loadMockTrivia()
     }
     
     private func loadMockTrivia() {
@@ -186,6 +194,7 @@ class TriviaService: ObservableObject {
     }
     
     func seedDatabase() {
+        #if canImport(FirebaseFirestore)
         guard let db = db else { return }
         for item in triviaList {
             do {
@@ -195,5 +204,6 @@ class TriviaService: ObservableObject {
                 print("Error uploading \(item.id): \(error.localizedDescription)")
             }
         }
+        #endif
     }
 }
