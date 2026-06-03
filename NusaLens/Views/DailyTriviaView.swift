@@ -11,14 +11,23 @@ struct DailyTriviaView: View {
     
     @State private var selectedOptionIndex: Int? = nil
     @State private var answerSubmitted = false
-    
     @State private var showingPermissionAlert = false
+    @State private var animateStreak = false
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
                     
+                    // MARK: - Streak Card
+                    StreakCardView(
+                        currentStreak: service.currentStreak,
+                        bestStreak: service.bestStreak,
+                        hasAnsweredToday: service.hasAnsweredToday,
+                        animate: animateStreak
+                    )
+                    
+                    // MARK: - Trivia Card
                     if let trivia = service.dailyTrivia {
                         VStack(alignment: .leading, spacing: 20) {
                             // Card Header
@@ -41,10 +50,25 @@ struct DailyTriviaView: View {
                                     .lineSpacing(4)
                                     .padding(.bottom, 8)
                                 
+                                // Already answered today banner
+                                if service.hasAnsweredToday && !answerSubmitted {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "checkmark.seal.fill")
+                                            .foregroundStyle(.green)
+                                        Text("Kamu sudah menjawab trivia hari ini. Kembali lagi besok!")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color.green.opacity(0.08))
+                                    .cornerRadius(12)
+                                }
+                                
                                 VStack(spacing: 12) {
                                     ForEach(0..<options.count, id: \.self) { index in
                                         Button(action: {
-                                            if !answerSubmitted {
+                                            if !answerSubmitted && !service.hasAnsweredToday {
                                                 selectedOptionIndex = index
                                             }
                                         }) {
@@ -64,7 +88,10 @@ struct DailyTriviaView: View {
                                                     }
                                                 } else {
                                                     Circle()
-                                                        .strokeBorder(selectedOptionIndex == index ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 2)
+                                                        .strokeBorder(
+                                                            selectedOptionIndex == index ? Color.accentColor : Color.secondary.opacity(0.3),
+                                                            lineWidth: 2
+                                                        )
                                                         .frame(width: 20, height: 20)
                                                 }
                                             }
@@ -80,15 +107,26 @@ struct DailyTriviaView: View {
                                             )
                                         }
                                         .buttonStyle(.plain)
-                                        .disabled(answerSubmitted)
+                                        .disabled(answerSubmitted || service.hasAnsweredToday)
                                     }
                                 }
                                 
-                                if !answerSubmitted {
+                                if !answerSubmitted && !service.hasAnsweredToday {
                                     Button(action: {
                                         if selectedOptionIndex != nil {
-                                            withAnimation {
+                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                                                 answerSubmitted = true
+                                            }
+                                            let isCorrect = selectedOptionIndex == trivia.correctOptionIndex
+                                            service.recordTriviaAnswer(wasCorrect: isCorrect)
+                                            // Trigger streak animation
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
+                                                    animateStreak = true
+                                                }
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                                    animateStreak = false
+                                                }
                                             }
                                         }
                                     }) {
@@ -103,6 +141,7 @@ struct DailyTriviaView: View {
                                     .disabled(selectedOptionIndex == nil)
                                     .padding(.top, 8)
                                 }
+                                
                                 if answerSubmitted, let explanation = trivia.explanation {
                                     VStack(alignment: .leading, spacing: 10) {
                                         Divider()
@@ -141,6 +180,7 @@ struct DailyTriviaView: View {
                         .frame(height: 200)
                     }
                     
+                    // MARK: - Notification Card
                     VStack(alignment: .leading, spacing: 20) {
                         Text("Pengingat Harian")
                             .font(.title3)
@@ -204,6 +244,12 @@ struct DailyTriviaView: View {
             } message: {
                 Text("Untuk mengaktifkan pengingat trivia harian, silakan izinkan notifikasi untuk NusaLens di Pengaturan perangkat Anda.")
             }
+            .onAppear {
+                // Sync submitted state if already answered today
+                if service.hasAnsweredToday {
+                    answerSubmitted = false // don't show last session's answer state
+                }
+            }
         }
     }
     
@@ -211,15 +257,8 @@ struct DailyTriviaView: View {
         guard answerSubmitted else {
             return selectedOptionIndex == index ? Color.accentColor.opacity(0.08) : Color(.systemGray6)
         }
-        
-        if index == correctIndex {
-            return Color.green.opacity(0.1)
-        }
-        
-        if selectedOptionIndex == index {
-            return Color.red.opacity(0.1)
-        }
-        
+        if index == correctIndex { return Color.green.opacity(0.1) }
+        if selectedOptionIndex == index { return Color.red.opacity(0.1) }
         return Color(.systemGray6)
     }
     
@@ -227,20 +266,124 @@ struct DailyTriviaView: View {
         guard answerSubmitted else {
             return selectedOptionIndex == index ? Color.accentColor : Color.clear
         }
-        
-        if index == trivia.correctOptionIndex {
-            return Color.green
-        }
-        
-        if selectedOptionIndex == index {
-            return Color.red
-        }
-        
+        if index == trivia.correctOptionIndex { return Color.green }
+        if selectedOptionIndex == index { return Color.red }
         return Color.clear
     }
     
     private var trivia: Trivia {
         service.dailyTrivia ?? Trivia(id: "", fact: "")
+    }
+}
+
+// MARK: - Streak Card Component
+struct StreakCardView: View {
+    let currentStreak: Int
+    let bestStreak: Int
+    let hasAnsweredToday: Bool
+    let animate: Bool
+    
+    private var flameColor: Color {
+        if currentStreak == 0 {
+            return Color(.systemGray3)
+        } else if hasAnsweredToday {
+            return Color.orange
+        } else {
+            // Streak exists but not yet answered today — dim slightly as warning
+            return Color.orange.opacity(0.5)
+        }
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 20) {
+                // Flame Icon
+                ZStack {
+                    Circle()
+                        .fill(flameColor.opacity(0.15))
+                        .frame(width: 72, height: 72)
+                    
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(flameColor)
+                        .scaleEffect(animate ? 1.25 : 1.0)
+                        .shadow(color: currentStreak > 0 ? Color.orange.opacity(0.4) : .clear, radius: animate ? 12 : 4)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(currentStreak == 0 ? "Mulai Streak-mu!" : "\(currentStreak) Hari Berturut-turut")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                    
+                    if currentStreak == 0 {
+                        Text("Jawab trivia hari ini untuk memulai streak")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else if hasAnsweredToday {
+                        Text("Keren! Streak hari ini sudah terjaga 🎉")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("Jangan lupa jawab trivia hari ini!")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.orange.opacity(0.8))
+                    }
+                }
+                
+                Spacer()
+            }
+            
+            Divider()
+            
+            // Best Streak & Status Row
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Streak Terbaik")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                    HStack(spacing: 4) {
+                        Image(systemName: "trophy.fill")
+                            .font(.caption)
+                            .foregroundStyle(Color.yellow)
+                        Text("\(bestStreak) hari")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                    }
+                }
+                
+                Spacer()
+                
+                // Status badge
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(hasAnsweredToday ? Color.green : Color.orange)
+                        .frame(width: 8, height: 8)
+                    Text(hasAnsweredToday ? "Sudah dijawab" : "Belum dijawab")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(hasAnsweredToday ? Color.green : Color.orange)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background((hasAnsweredToday ? Color.green : Color.orange).opacity(0.1))
+                .cornerRadius(20)
+            }
+        }
+        .padding(20)
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(20)
+        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
+        .overlay(
+            // Glow border when streak is active and answered today
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(
+                    currentStreak > 0 && hasAnsweredToday
+                        ? Color.orange.opacity(0.4)
+                        : Color.clear,
+                    lineWidth: 1.5
+                )
+        )
     }
 }
 

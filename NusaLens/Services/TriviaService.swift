@@ -17,6 +17,11 @@ class TriviaService: ObservableObject {
     @Published var notificationsEnabled = false
     @Published var preferredTime = Date()
     
+    // MARK: - Streak
+    @Published var currentStreak: Int = 0
+    @Published var bestStreak: Int = 0
+    @Published var hasAnsweredToday: Bool = false
+
     #if canImport(FirebaseFirestore)
     private var db: Firestore?
     #endif
@@ -29,6 +34,7 @@ class TriviaService: ObservableObject {
         #endif
         
         loadSettings()
+        loadStreakData()
         fetchTrivia()
         checkNotificationStatus()
     }
@@ -193,6 +199,54 @@ class TriviaService: ObservableObject {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["daily_trivia_notification"])
     }
     
+    // MARK: - Streak Logic
+    
+    private func loadStreakData() {
+        currentStreak = UserDefaults.standard.integer(forKey: "trivia_current_streak")
+        bestStreak = UserDefaults.standard.integer(forKey: "trivia_best_streak")
+        
+        if let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date {
+            hasAnsweredToday = Calendar.current.isDateInToday(lastDate)
+            // Streak patah jika lewat lebih dari 1 hari
+            if !Calendar.current.isDateInToday(lastDate) && !Calendar.current.isDateInYesterday(lastDate) {
+                currentStreak = 0
+                UserDefaults.standard.set(0, forKey: "trivia_current_streak")
+            }
+        } else {
+            hasAnsweredToday = false
+        }
+    }
+    
+    func recordTriviaAnswer(wasCorrect: Bool) {
+        guard !hasAnsweredToday else { return }
+        
+        let calendar = Calendar.current
+        let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date
+        
+        if let lastDate = lastDate {
+            if calendar.isDateInYesterday(lastDate) {
+                // Hari berturut-turut — streak lanjut
+                currentStreak += 1
+            } else if !calendar.isDateInToday(lastDate) {
+                // Melewatkan hari — streak mulai dari 1
+                currentStreak = 1
+            }
+        } else {
+            // Pertama kali menjawab
+            currentStreak = 1
+        }
+        
+        if currentStreak > bestStreak {
+            bestStreak = currentStreak
+        }
+        
+        hasAnsweredToday = true
+        
+        UserDefaults.standard.set(currentStreak, forKey: "trivia_current_streak")
+        UserDefaults.standard.set(bestStreak, forKey: "trivia_best_streak")
+        UserDefaults.standard.set(Date(), forKey: "trivia_last_answered_date")
+    }
+
     func seedDatabase() {
         #if canImport(FirebaseFirestore)
         guard let db = db else { return }

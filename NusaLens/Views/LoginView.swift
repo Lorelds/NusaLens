@@ -8,6 +8,7 @@ import SwiftUI
 struct LoginView: View {
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var cultureService: CultureService
+    @StateObject private var triviaService = TriviaService()
     @State private var email = ""
     @State private var password = ""
     @State private var isLoginMode = true
@@ -19,6 +20,13 @@ struct LoginView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
+                    // MARK: - Streak Banner (always visible)
+                    ProfileStreakBannerView(
+                        currentStreak: triviaService.currentStreak,
+                        bestStreak: triviaService.bestStreak,
+                        hasAnsweredToday: triviaService.hasAnsweredToday
+                    )
+                    
                     if authService.isAuthenticated {
                         Image(systemName: "person.crop.circle.fill.badge.checkmark")
                             .font(.system(size: 80))
@@ -201,5 +209,84 @@ struct LoginView: View {
                 Text("Kami akan mengirimkan email berisi tautan untuk mereset kata sandi Anda.")
             }
         }
+    }
+}
+
+// MARK: - Profile Streak Banner
+struct ProfileStreakBannerView: View {
+    let currentStreak: Int
+    let bestStreak: Int
+    let hasAnsweredToday: Bool
+    
+    private var flameColor: Color {
+        guard currentStreak > 0 else { return Color(.systemGray3) }
+        return hasAnsweredToday ? Color.orange : Color.orange.opacity(0.5)
+    }
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Flame icon
+            ZStack {
+                Circle()
+                    .fill(flameColor.opacity(0.15))
+                    .frame(width: 56, height: 56)
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(flameColor)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(currentStreak == 0 ? "Belum ada streak" : "\(currentStreak) Hari Streak")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                    
+                    if currentStreak > 0 && hasAnsweredToday {
+                        Text("🔥")
+                            .font(.subheadline)
+                    }
+                }
+                
+                Text(currentStreak == 0
+                     ? "Jawab trivia harian untuk memulai"
+                     : hasAnsweredToday
+                         ? "Streak hari ini sudah aman!"
+                         : "Jaga streak-mu, jawab hari ini!")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+            
+            // Best streak badge
+            VStack(spacing: 2) {
+                Image(systemName: "trophy.fill")
+                    .font(.caption)
+                    .foregroundStyle(Color.yellow)
+                Text("\(bestStreak)")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                Text("Terbaik")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+        }
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(20)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(
+                    currentStreak > 0 && hasAnsweredToday
+                        ? Color.orange.opacity(0.35)
+                        : Color.clear,
+                    lineWidth: 1.5
+                )
+        )
     }
 }
