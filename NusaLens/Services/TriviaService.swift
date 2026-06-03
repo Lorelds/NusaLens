@@ -139,62 +139,64 @@ class TriviaService: ObservableObject {
     }
     
     private func selectDailyTrivia() {
-        guard !triviaList.isEmpty else { return }
+        guard !triviaList.isEmpty else { return } //Kalau list nya kosong, function berhenti
         
-        let calendar = Calendar.current
-        let dayOfYear = calendar.ordinality(of: .day, in: .year, for: Date()) ?? 1
-        let index = dayOfYear % triviaList.count
-        self.dailyTrivia = triviaList[index]
+        let calendar = Calendar.current // Ambil kalender
+        let dayOfYear = calendar.ordinality(of: .day, in: .year, for: Date()) ?? 1 // Ambil tanggal hari ini (1-365)
+        let index = dayOfYear % triviaList.count // Ambil index (tanggal modulo jumlah trivia)
+        self.dailyTrivia = triviaList[index] // Set trivia hari ini
     }
     
     func checkNotificationStatus() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             Task { @MainActor in
-                if settings.authorizationStatus != .authorized {
-                    self.notificationsEnabled = false
-                    UserDefaults.standard.set(false, forKey: "trivia_notifications_enabled")
+                if settings.authorizationStatus != .authorized { // Jika notifikasi tidak diizinkan
+                    self.notificationsEnabled = false // Matikan notifikasi
+                    UserDefaults.standard.set(false, forKey: "trivia_notifications_enabled") // Simpan ke UserDefaults
                 }			
             }
         }
     }
     
     func requestNotificationPermission(completion: @escaping @Sendable (Bool) -> Void) {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in 
             Task { @MainActor in
                 if granted {
-                    self.notificationsEnabled = true
-                    UserDefaults.standard.set(true, forKey: "trivia_notifications_enabled")
-                    self.scheduleDailyNotification()
+                    self.notificationsEnabled = true // Izinkan notifikasi
+                    UserDefaults.standard.set(true, forKey: "trivia_notifications_enabled") // Simpan ke UserDefaults
+                    self.scheduleDailyNotification() // Jadwalkan notifikasi
                 } else {
-                    self.notificationsEnabled = false
-                    UserDefaults.standard.set(false, forKey: "trivia_notifications_enabled")
+                    self.notificationsEnabled = false // Matikan notifikasi
+                    UserDefaults.standard.set(false, forKey: "trivia_notifications_enabled") // Simpan ke UserDefaults
                 }
-                completion(granted)
+                completion(granted) // Beri tahu view bahwa notifikasi berhasil dikirim
             }
         }
     }
     
     private func scheduleDailyNotification() {
-        cancelNotifications()
+        cancelNotifications() // Matikan notif agar tidak duplikat
         
-        let content = UNMutableNotificationContent()
-        content.title = "Daily Culture Trivia 🇮🇩"
-        content.body = "Waktunya menguji wawasanmu tentang budaya Nusantara hari ini! Buka NusaLens sekarang."
-        content.sound = .default
+        let content = UNMutableNotificationContent() // Buat konten notifikasi
+        content.title = "Daily Culture Trivia 🇮🇩" // Judul notifikasi
+        content.body = "Waktunya menguji wawasanmu tentang budaya Nusantara hari ini! Buka NusaLens sekarang." // Isi notifikasi
+        content.sound = .default // Bunyi notifikasi
         
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute], from: preferredTime)
+        let calendar = Calendar.current // Ambil kalender
+        let components = calendar.dateComponents([.hour, .minute], from: preferredTime) // Ambil jam dan menit dari waktu yang diinginkan
         
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
-        let request = UNNotificationRequest(identifier: "daily_trivia_notification", content: content, trigger: trigger)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true) // Jadwalkan notifikasi setiap hari
+        let request = UNNotificationRequest(identifier: "daily_trivia_notification", content: content, trigger: trigger) // Jadwalkan notifikasi
         
+        // Tambahkan notifikasi ke sistem
         UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error scheduling notification: \(error.localizedDescription)")
+            if let error = error { // Jika terjadi kesalahan saat menambahkan notifikasi
+                print("Error scheduling notification: \(error.localizedDescription)") // Cetak error
             }
         }
     }
     
+    // Hapus notifikasi yang sudah dijadwalkan
     private func cancelNotifications() {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["daily_trivia_notification"])
     }
@@ -248,16 +250,16 @@ class TriviaService: ObservableObject {
     }
 
     func seedDatabase() {
-        #if canImport(FirebaseFirestore)
-        guard let db = db else { return }
-        for item in triviaList {
+        #if canImport(FirebaseFirestore) // Cek apakah Firebase Firestore diimpor
+        guard let db = db else { return } // Jika db kosong, function berhenti
+        for item in triviaList { // Loop triviaList
             do {
-                try db.collection("trivia").document(item.id).setData(from: item)
-                print("Successfully uploaded \(item.id)")
+                try db.collection("trivia").document(item.id).setData(from: item) // Set data ke Firestore
+                print("Successfully uploaded \(item.id)") // Beri tahu view bahwa data berhasil diupload
             } catch {
-                print("Error uploading \(item.id): \(error.localizedDescription)")
+                print("Error uploading \(item.id): \(error.localizedDescription)") // Beri tahu view bahwa data gagal diupload
             }
         }
-        #endif
+        #endif 
     }
 }
