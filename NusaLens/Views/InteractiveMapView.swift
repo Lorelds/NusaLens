@@ -6,6 +6,23 @@
 import SwiftUI
 import MapKit
 
+/// Filter mode for map markers
+enum MapDisplayFilter: String, CaseIterable, Identifiable {
+    case all = "Museum & Budaya"
+    case museumOnly = "Museum"
+    case budayaOnly = "Budaya"
+    
+    var id: String { rawValue }
+    
+    var iconName: String {
+        switch self {
+        case .all: return "square.grid.2x2.fill"
+        case .museumOnly: return "building.columns.fill"
+        case .budayaOnly: return "theatermasks.fill"
+        }
+    }
+}
+
 struct ProvinceMarker: Identifiable {
     var id: String { "\(name)-\(itemCount)" }
     let name: String
@@ -33,8 +50,8 @@ struct InteractiveMapView: View {
     
     @State private var latitudeDelta: Double? = nil
     
-    // Museum
-    @State private var showMuseumMarkers = true
+    // Display filter
+    @State private var mapDisplayFilter: MapDisplayFilter = .all
     @State private var selectedMuseum: Museum? = nil
     @State private var showMuseumSheet = false
     
@@ -72,34 +89,37 @@ struct InteractiveMapView: View {
             ZStack(alignment: .top) {
                 // Map Container
                 Map(position: $cameraPosition) {
-                    ForEach(provinceMarkers) { marker in
-                        Annotation(marker.name, coordinate: marker.coordinate) {
-                            Button(action: {
-                                selectedProvince = marker.name
-                                showSheet = true
-                            }) {
-                                let delta = latitudeDelta ?? 12.0
-                                let progress = max(0, min(1, (delta - 2.0) / 15.0))
-                                let dynamicSize: CGFloat = 44.0 - (CGFloat(progress) * 20.0) // 44 down to 24
-                                
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.accentColor)
-                                        .frame(width: dynamicSize, height: dynamicSize)
-                                        .shadow(color: .black.opacity(0.15), radius: 4)
-                                        .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                    // Province/Budaya markers — show when filter is .all or .budayaOnly
+                    if mapDisplayFilter != .museumOnly {
+                        ForEach(provinceMarkers) { marker in
+                            Annotation(marker.name, coordinate: marker.coordinate) {
+                                Button(action: {
+                                    selectedProvince = marker.name
+                                    showSheet = true
+                                }) {
+                                    let delta = latitudeDelta ?? 12.0
+                                    let progress = max(0, min(1, (delta - 2.0) / 15.0))
+                                    let dynamicSize: CGFloat = 44.0 - (CGFloat(progress) * 20.0) // 44 down to 24
                                     
-                                    Text("\(marker.itemCount)")
-                                        .font(.system(size: dynamicSize * 0.45, weight: .bold))
-                                        .foregroundStyle(.white)
-                                        .minimumScaleFactor(0.5)
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.accentColor)
+                                            .frame(width: dynamicSize, height: dynamicSize)
+                                            .shadow(color: .black.opacity(0.15), radius: 4)
+                                            .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                                        
+                                        Text("\(marker.itemCount)")
+                                            .font(.system(size: dynamicSize * 0.45, weight: .bold))
+                                            .foregroundStyle(.white)
+                                            .minimumScaleFactor(0.5)
+                                    }
                                 }
                             }
                         }
                     }
                     
-                    // Museum markers
-                    if showMuseumMarkers {
+                    // Museum markers — show when filter is .all or .museumOnly
+                    if mapDisplayFilter != .budayaOnly {
                         ForEach(service.museums) { museum in
                             Annotation(museum.name, coordinate: museum.coordinate) {
                                 Button(action: {
@@ -195,25 +215,32 @@ struct InteractiveMapView: View {
                         .padding(.bottom, 10)
                     }
                     
-                    // Museum toggle
-                    HStack {
-                        Button(action: { showMuseumMarkers.toggle() }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "building.columns.fill")
-                                Text(showMuseumMarkers ? "Museum" : "Museum")
+                    // Map display filter toggle
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(MapDisplayFilter.allCases) { filter in
+                                Button(action: {
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        mapDisplayFilter = filter
+                                    }
+                                }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: filter.iconName)
+                                        Text(filter.rawValue)
+                                    }
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(mapDisplayFilter == filter ? Color.orange : Color(.systemBackground))
+                                    .foregroundStyle(mapDisplayFilter == filter ? .white : .primary)
+                                    .clipShape(Capsule())
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4)
+                                }
                             }
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(showMuseumMarkers ? Color.orange : Color(.systemBackground))
-                            .foregroundStyle(showMuseumMarkers ? .white : .primary)
-                            .clipShape(Capsule())
-                            .shadow(color: Color.black.opacity(0.1), radius: 4)
                         }
-                        Spacer()
+                        .padding(.horizontal, 20)
                     }
-                    .padding(.horizontal, 20)
                 }
                 .padding(.top, 16)
             }
