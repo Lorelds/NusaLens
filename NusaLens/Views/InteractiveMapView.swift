@@ -52,6 +52,8 @@ struct InteractiveMapView: View {
     
     // Display filter
     @State private var mapDisplayFilter: MapDisplayFilter = .all
+    @State private var isFilterExpanded = false
+    
     @State private var selectedMuseum: Museum? = nil
     @State private var showMuseumSheet = false
     
@@ -173,73 +175,92 @@ struct InteractiveMapView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        
+                        Divider()
+                            .frame(height: 20)
+                            .padding(.horizontal, 4)
+                        
+                        Button(action: {
+                            withAnimation(.spring()) {
+                                isFilterExpanded.toggle()
+                            }
+                        }) {
+                            Image(systemName: "line.3.horizontal.decrease.circle\(isFilterExpanded ? ".fill" : "")")
+                                .font(.title3)
+                                .foregroundStyle(isFilterExpanded ? Color.accentColor : .secondary)
+                        }
                     }
                     .padding(12)
                     .background(.regularMaterial)
                     .cornerRadius(12)
                     .padding(.horizontal, 20)
                     
-                    // Category Selector Bar
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            Button(action: { selectedCategory = nil }) {
-                                Text("Semua")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(selectedCategory == nil ? Color.accentColor : Color(.systemBackground))
-                                    .foregroundStyle(selectedCategory == nil ? .white : .primary)
-                                    .clipShape(Capsule())
-                                    .shadow(color: Color.black.opacity(0.1), radius: 4)
-                            }
-                            
-                            ForEach(CulturalCategory.allCases) { category in
-                                Button(action: { selectedCategory = category }) {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: category.iconName)
-                                        Text(category.rawValue)
+                    if isFilterExpanded {
+                        // Category Selector Bar
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                Button(action: { selectedCategory = nil }) {
+                                    Text("Semua")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(selectedCategory == nil ? Color.accentColor : Color(.systemBackground))
+                                        .foregroundStyle(selectedCategory == nil ? .white : .primary)
+                                        .clipShape(Capsule())
+                                        .shadow(color: Color.black.opacity(0.1), radius: 4)
+                                }
+                                
+                                ForEach(CulturalCategory.allCases) { category in
+                                    Button(action: { selectedCategory = category }) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: category.iconName)
+                                            Text(category.rawValue)
+                                        }
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(selectedCategory == category ? Color.accentColor : Color(.systemBackground))
+                                        .foregroundStyle(selectedCategory == category ? .white : .primary)
+                                        .clipShape(Capsule())
+                                        .shadow(color: Color.black.opacity(0.1), radius: 4)
                                     }
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(selectedCategory == category ? Color.accentColor : Color(.systemBackground))
-                                    .foregroundStyle(selectedCategory == category ? .white : .primary)
-                                    .clipShape(Capsule())
-                                    .shadow(color: Color.black.opacity(0.1), radius: 4)
                                 }
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 4)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 10)
-                    }
-                    
-                    // Map display filter toggle
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(MapDisplayFilter.allCases) { filter in
-                                Button(action: {
-                                    withAnimation(.easeInOut(duration: 0.25)) {
-                                        mapDisplayFilter = filter
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        
+                        // Map display filter toggle
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(MapDisplayFilter.allCases) { filter in
+                                    Button(action: {
+                                        withAnimation(.easeInOut(duration: 0.25)) {
+                                            mapDisplayFilter = filter
+                                        }
+                                    }) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: filter.iconName)
+                                            Text(filter.rawValue)
+                                        }
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                        .background(mapDisplayFilter == filter ? Color.orange : Color(.systemBackground))
+                                        .foregroundStyle(mapDisplayFilter == filter ? .white : .primary)
+                                        .clipShape(Capsule())
+                                        .shadow(color: Color.black.opacity(0.1), radius: 4)
                                     }
-                                }) {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: filter.iconName)
-                                        Text(filter.rawValue)
-                                    }
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 8)
-                                    .background(mapDisplayFilter == filter ? Color.orange : Color(.systemBackground))
-                                    .foregroundStyle(mapDisplayFilter == filter ? .white : .primary)
-                                    .clipShape(Capsule())
-                                    .shadow(color: Color.black.opacity(0.1), radius: 4)
                                 }
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 10)
                         }
-                        .padding(.horizontal, 20)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 }
                 .padding(.top, 16)
