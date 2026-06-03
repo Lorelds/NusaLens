@@ -25,10 +25,22 @@ struct InteractiveMapView: View {
     @State private var selectedProvince: String? = nil
     @State private var showSheet = false
     
+    @State private var selectedCategory: CulturalCategory? = nil
+    @State private var searchText = ""
+    @State private var showSuggestionAlert = false
+    @State private var searchSuggestion: String? = nil
+    @State private var suggestionCoordinate: CLLocationCoordinate2D? = nil
+    
+    var filteredItems: [Budaya] {
+        service.items.filter { item in
+            selectedCategory == nil || item.category == selectedCategory
+        }
+    }
+    
     // Generate province markers dynamically from fetched items
     var provinceMarkers: [ProvinceMarker] {
         var markers: [ProvinceMarker] = []
-        let grouped = Dictionary(grouping: service.items, by: { $0.province })
+        let grouped = Dictionary(grouping: filteredItems, by: { $0.province })
         
         for (province, items) in grouped {
             if let firstItem = items.first {
@@ -45,7 +57,7 @@ struct InteractiveMapView: View {
     // Items that belong to the selected province
     var itemsInSelectedProvince: [Budaya] {
         guard let province = selectedProvince else { return [] }
-        return service.items.filter { $0.province == province }
+        return filteredItems.filter { $0.province == province }
     }
     
     var body: some View {
@@ -86,40 +98,177 @@ struct InteractiveMapView: View {
                 }
                 .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
                 
-                // Instructions Overlay
-                Text("Ketuk pin daerah untuk melihat koleksi budaya")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(20)
-                    .padding(.top, 16)
-                    .shadow(color: .black.opacity(0.05), radius: 3)
+                VStack(spacing: 12) {
+                    // Search Bar
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.secondary)
+                        
+                        TextField("Cari provinsi atau budaya (mis. Bali)...", text: $searchText)
+                            .textFieldStyle(.plain)
+                            .autocorrectionDisabled()
+                            .onSubmit {
+                                performSearch()
+                            }
+                        
+                        if !searchText.isEmpty {
+                            Button(action: { searchText = "" }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .background(.regularMaterial)
+                    .cornerRadius(12)
+                    .padding(.horizontal, 20)
+                    
+                    // Category Selector Bar
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            Button(action: { selectedCategory = nil }) {
+                                Text("Semua")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(selectedCategory == nil ? Color.accentColor : Color(.systemBackground))
+                                    .foregroundStyle(selectedCategory == nil ? .white : .primary)
+                                    .clipShape(Capsule())
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4)
+                            }
+                            
+                            ForEach(CulturalCategory.allCases) { category in
+                                Button(action: { selectedCategory = category }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: category.iconName)
+                                        Text(category.rawValue)
+                                    }
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(selectedCategory == category ? Color.accentColor : Color(.systemBackground))
+                                    .foregroundStyle(selectedCategory == category ? .white : .primary)
+                                    .clipShape(Capsule())
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 10)
+                    }
+                }
+                .padding(.top, 16)
             }
             .navigationTitle("Peta Budaya")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showSheet, onDismiss: { selectedProvince = nil }) {
                 if let province = selectedProvince {
-                    ProvinceCulturalListView(province: province, service: service)
+                    ProvinceCulturalListView(province: province, items: itemsInSelectedProvince)
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
                 }
             }
+            .alert(searchSuggestion != nil ? "Apakah maksud Anda \(searchSuggestion!)?" : "Lokasi tidak ditemukan", isPresented: $showSuggestionAlert) {
+                if let prov = searchSuggestion, let coord = suggestionCoordinate {
+                    Button("Ya, Arahkan") {
+                        searchText = prov
+                        navigateTo(province: prov, coordinate: coord)
+                    }
+                    Button("Batal", role: .cancel) {
+                        searchSuggestion = nil
+                        suggestionCoordinate = nil
+                    }
+                } else {
+                    Button("OK", role: .cancel) {}
+                }
+            } message: {
+                if searchSuggestion == nil {
+                    Text("Coba cari dengan kata kunci lain.")
+                }
+            }
         }
+    }
+    
+    // MARK: - Search Logic
+    private func performSearch() {
+        var query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !query.isEmpty else { return }
+        
+        // Alias mapping
+        if query == "jakarta" {
+            query = "dki jakarta"
+        } else if query == "yogyakarta" || query == "jogja" {
+            query = "di yogyakarta"
+        }
+        
+        // 1. High confidence: exact prefix or contains
+        // Search in all provinces first (allows navigating to empty provinces)
+        if let prov = ProvinceLocation.allProvinces.first(where: { $0.name.lowercased() == query || $0.name.lowercased().hasPrefix(query) || $0.name.lowercased().contains(query) }) {
+            navigateTo(province: prov.name, coordinate: CLLocationCoordinate2D(latitude: prov.latitude, longitude: prov.longitude))
+            return
+        }
+        
+        // Search in cultures
+        if let exactMatch = filteredItems.first(where: { $0.name.lowercased().hasPrefix(query) || $0.name.lowercased().contains(query) }) {
+            navigateTo(province: exactMatch.province, coordinate: exactMatch.coordinate)
+            return
+        }
+        
+        // 2. Medium confidence: Subsequence match (typo correction)
+        if let closeProv = ProvinceLocation.allProvinces.first(where: { isTypoMatch(query, target: $0.name.lowercased()) }) {
+            searchSuggestion = closeProv.name
+            suggestionCoordinate = CLLocationCoordinate2D(latitude: closeProv.latitude, longitude: closeProv.longitude)
+            showSuggestionAlert = true
+            return
+        }
+        
+        if let closeMatch = filteredItems.first(where: { isTypoMatch(query, target: $0.name.lowercased()) }) {
+            searchSuggestion = closeMatch.province
+            suggestionCoordinate = closeMatch.coordinate
+            showSuggestionAlert = true
+            return
+        }
+        
+        // 3. Low confidence: Fallback, just show alert indicating nothing found
+        searchSuggestion = nil
+        showSuggestionAlert = true
+    }
+    
+    private func navigateTo(province: String, coordinate: CLLocationCoordinate2D) {
+        withAnimation(.easeInOut(duration: 1.0)) {
+            cameraPosition = .region(MKCoordinateRegion(
+                center: coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 2.0, longitudeDelta: 2.0)
+            ))
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            selectedProvince = province
+            showSheet = true
+        }
+    }
+    
+    private func isTypoMatch(_ query: String, target: String) -> Bool {
+        let queryChars = Array(query)
+        let targetChars = Array(target)
+        if queryChars.count > targetChars.count { return false }
+        
+        var qIdx = 0
+        for tChar in targetChars {
+            if qIdx < queryChars.count && tChar == queryChars[qIdx] {
+                qIdx += 1
+            }
+        }
+        return qIdx == queryChars.count && queryChars.count >= 3
     }
 }
 
 // Subview representing the bottom sheet content
 struct ProvinceCulturalListView: View {
     let province: String
-    @ObservedObject var service: CultureService
+    let items: [Budaya]
     @Environment(\.dismiss) private var dismiss
-    
-    var items: [Budaya] {
-        service.items.filter { $0.province == province }
-    }
     
     var body: some View {
         NavigationStack {
@@ -131,16 +280,22 @@ struct ProvinceCulturalListView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 24)
                     
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
-                        ForEach(items) { item in
-                            NavigationLink(destination: DetailView(item: item)) {
-                                BudayaCardView(item: item)
+                    if items.isEmpty {
+                        Text("Tidak ada budaya di kategori ini.")
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 20)
+                    } else {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 16)], spacing: 16) {
+                            ForEach(items) { item in
+                                NavigationLink(destination: DetailView(item: item)) {
+                                    BudayaCardView(item: item)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 24)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 24)
                 }
             }
             .background(Color(.systemGroupedBackground))
