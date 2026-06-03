@@ -31,6 +31,8 @@ struct InteractiveMapView: View {
     @State private var searchSuggestion: String? = nil
     @State private var suggestionCoordinate: CLLocationCoordinate2D? = nil
     
+    @State private var latitudeDelta: Double? = nil
+    
     var filteredItems: [Budaya] {
         service.items.filter { item in
             selectedCategory == nil || item.category == selectedCategory
@@ -71,38 +73,30 @@ struct InteractiveMapView: View {
                                 selectedProvince = marker.name
                                 showSheet = true
                             }) {
-                                VStack(spacing: 4) {
-                                        let baseSize: CGFloat = 36
-                                        // Scale slower (x 1.5 instead of x 4) and cap at 55 instead of 80
-                                        let dynamicSize = min(baseSize + CGFloat(marker.itemCount) * 1.5, 55) 
-                                        let iconScale = min(1.0 + Double(marker.itemCount) * 0.02, 1.3)
-                                        
-                                        ZStack {
-                                            Circle()
-                                                .fill(Color.accentColor)
-                                                .frame(width: dynamicSize, height: dynamicSize)
-                                                .shadow(color: .black.opacity(0.15), radius: 4)
-                                            
-                                            Image(systemName: "hand.tap.fill")
-                                                .font(.system(size: 14 * iconScale))
-                                                .foregroundStyle(.white)
-                                        }
-                                        
-                                        // Item count bubble
-                                        Text("\(marker.itemCount) Budaya")
-                                            // Scale text slower and cap at 12
-                                            .font(.system(size: min(10 + CGFloat(marker.itemCount) * 0.2, 12), weight: .bold))
-                                            .foregroundStyle(.white)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.black.opacity(0.75))
-                                            .cornerRadius(4)
-                                    }
+                                let delta = latitudeDelta ?? 12.0
+                                let progress = max(0, min(1, (delta - 2.0) / 15.0))
+                                let dynamicSize: CGFloat = 44.0 - (CGFloat(progress) * 20.0) // 44 down to 24
+                                
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.accentColor)
+                                        .frame(width: dynamicSize, height: dynamicSize)
+                                        .shadow(color: .black.opacity(0.15), radius: 4)
+                                        .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                                    
+                                    Text("\(marker.itemCount)")
+                                        .font(.system(size: dynamicSize * 0.45, weight: .bold))
+                                        .foregroundStyle(.white)
+                                        .minimumScaleFactor(0.5)
+                                }
                             }
                         }
                     }
                 }
                 .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
+                .onMapCameraChange { context in
+                    latitudeDelta = context.region.span.latitudeDelta
+                }
                 
                 VStack(spacing: 12) {
                     // Search Bar
