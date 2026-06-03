@@ -73,8 +73,9 @@ struct InteractiveMapView: View {
                             }) {
                                 VStack(spacing: 4) {
                                         let baseSize: CGFloat = 36
-                                        let dynamicSize = min(baseSize + CGFloat(marker.itemCount * 4), 80) // Scales up, max 80
-                                        let iconScale = min(1.0 + Double(marker.itemCount) * 0.05, 1.5)
+                                        // Scale slower (x 1.5 instead of x 4) and cap at 55 instead of 80
+                                        let dynamicSize = min(baseSize + CGFloat(marker.itemCount) * 1.5, 55) 
+                                        let iconScale = min(1.0 + Double(marker.itemCount) * 0.02, 1.3)
                                         
                                         ZStack {
                                             Circle()
@@ -89,7 +90,8 @@ struct InteractiveMapView: View {
                                         
                                         // Item count bubble
                                         Text("\(marker.itemCount) Budaya")
-                                            .font(.system(size: min(10 + CGFloat(marker.itemCount), 14), weight: .bold))
+                                            // Scale text slower and cap at 12
+                                            .font(.system(size: min(10 + CGFloat(marker.itemCount) * 0.2, 12), weight: .bold))
                                             .foregroundStyle(.white)
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 2)

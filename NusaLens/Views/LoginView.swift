@@ -56,6 +56,19 @@ struct LoginView: View {
                                     .cornerRadius(12)
                             }
                             .padding(.top, 10)
+                            
+                            Button(action: {
+                                cultureService.deleteMassiveMockData()
+                            }) {
+                                Text("Hapus Semua Data Dummy")
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.red.opacity(0.8))
+                                    .cornerRadius(12)
+                            }
+                            .padding(.top, 4)
                         }
                         
                         Button(action: {

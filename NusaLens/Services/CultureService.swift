@@ -191,12 +191,13 @@ class CultureService: ObservableObject {
     func seedMassiveMockData() {
         var generatedItems: [Budaya] = []
         let categories = CulturalCategory.allCases
-        let images = [
-            "https://images.unsplash.com/photo-1590736969955-71cc94801759?auto=format&fit=crop&q=80&w=600",
-            "https://images.unsplash.com/photo-1614963326505-843867e2d8be?auto=format&fit=crop&q=80&w=600",
-            "https://images.unsplash.com/photo-1626804475315-76c2494191d8?auto=format&fit=crop&q=80&w=600",
-            "https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&q=80&w=600",
-            "https://images.unsplash.com/photo-1605538032432-a9f0c8d9baac?auto=format&fit=crop&q=80&w=600"
+        let categoryImages: [CulturalCategory: String] = [
+            .pakaianAdat: "https://images.unsplash.com/photo-1590736969955-71cc94801759?auto=format&fit=crop&q=80&w=600", // Batik
+            .alatMusik: "https://images.unsplash.com/photo-1614963326505-843867e2d8be?auto=format&fit=crop&q=80&w=600", // Angklung
+            .kuliner: "https://images.unsplash.com/photo-1626804475315-76c2494191d8?auto=format&fit=crop&q=80&w=600", // Rendang
+            .seniPertunjukan: "https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&q=80&w=600", // Tari
+            .rumahAdat: "https://images.unsplash.com/photo-1605538032432-a9f0c8d9baac?auto=format&fit=crop&q=80&w=600", // Rumah Gadang
+            .upacaraAdat: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=600" // Ceremony
         ]
         
         for province in ProvinceLocation.allProvinces {
@@ -204,6 +205,7 @@ class CultureService: ObservableObject {
                 let latOffset = Double.random(in: -0.2...0.2)
                 let lonOffset = Double.random(in: -0.2...0.2)
                 let category = categories[i % categories.count]
+                let imageUrl = categoryImages[category] ?? "https://images.unsplash.com/photo-1540206395-68808572332f?auto=format&fit=crop&q=80&w=600"
                 
                 let item = Budaya(
                     id: UUID().uuidString,
@@ -212,7 +214,7 @@ class CultureService: ObservableObject {
                     category: category,
                     province: province.name,
                     region: province.region,
-                    imageUrl: images[i % images.count],
+                    imageUrl: imageUrl,
                     latitude: province.latitude + latOffset,
                     longitude: province.longitude + lonOffset
                 )
@@ -237,6 +239,32 @@ class CultureService: ObservableObject {
             print("Upload complete!")
         }
         #endif
+    }
+    
+    func deleteMassiveMockData() {
+        let dummyItems = items.filter { $0.description.contains("data dummy otomatis") }
+        
+        // Remove locally from UI
+        self.items.removeAll { $0.description.contains("data dummy otomatis") }
+        
+        #if canImport(FirebaseFirestore)
+        if let db = db {
+            print("Deleting \(dummyItems.count) dummy items from Firebase...")
+            for item in dummyItems {
+                db.collection("budaya").document(item.id).delete { error in
+                    if let error = error {
+                        print("Error deleting dummy item: \(error.localizedDescription)")
+                    }
+                }
+            }
+            print("Deletion complete!")
+        }
+        #endif
+        
+        // Fallback to original mock data if everything is deleted and no Firebase
+        if self.items.isEmpty && db == nil {
+            self.loadMockData()
+        }
     }
     
     func addBudaya(_ item: Budaya) {
