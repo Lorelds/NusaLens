@@ -216,10 +216,11 @@ class CultureService: ObservableObject {
         ]
     }
     
-    /// Returns the Budaya items whose IDs match the museum's budayaIds.
-    /// This uses the *existing* items array — no data duplication.
+    /// Returns the Budaya items that belong to the same province as the museum,
+    /// plus any specifically linked items in `budayaIds`.
+    /// This automatically populates the museum with local culture.
     func budayaForMuseum(_ museum: Museum) -> [Budaya] {
-        items.filter { museum.budayaIds.contains($0.id) }
+        items.filter { $0.province == museum.province || museum.budayaIds.contains($0.id) }
     }
     
     private func loadMockData() {
