@@ -60,26 +60,30 @@ struct InteractiveMapView: View {
                                 showSheet = true
                             }) {
                                 VStack(spacing: 4) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.accentColor)
-                                            .frame(width: 36, height: 36)
-                                            .shadow(color: .black.opacity(0.15), radius: 4)
+                                        let baseSize: CGFloat = 36
+                                        let dynamicSize = min(baseSize + CGFloat(marker.itemCount * 4), 80) // Scales up, max 80
+                                        let iconScale = min(1.0 + Double(marker.itemCount) * 0.05, 1.5)
                                         
-                                        Image(systemName: "hand.tap.fill")
-                                            .font(.caption2)
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.accentColor)
+                                                .frame(width: dynamicSize, height: dynamicSize)
+                                                .shadow(color: .black.opacity(0.15), radius: 4)
+                                            
+                                            Image(systemName: "hand.tap.fill")
+                                                .font(.system(size: 14 * iconScale))
+                                                .foregroundStyle(.white)
+                                        }
+                                        
+                                        // Item count bubble
+                                        Text("\(marker.itemCount) Budaya")
+                                            .font(.system(size: min(10 + CGFloat(marker.itemCount), 14), weight: .bold))
                                             .foregroundStyle(.white)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.black.opacity(0.75))
+                                            .cornerRadius(4)
                                     }
-                                    
-                                    // Item count bubble
-                                    Text("\(marker.itemCount) Budaya")
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundStyle(.white)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(Color.black.opacity(0.75))
-                                        .cornerRadius(4)
-                                }
                             }
                         }
                     }
