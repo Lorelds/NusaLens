@@ -15,6 +15,7 @@ import Combine
 @MainActor
 class CultureService: ObservableObject {
     @Published var items: [Budaya] = []
+    @Published var museums: [Museum] = []
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
     
@@ -31,6 +32,7 @@ class CultureService: ObservableObject {
         #endif
         
         fetchItems()
+        fetchMuseums()
     }
     
     func fetchItems() {
@@ -79,6 +81,145 @@ class CultureService: ObservableObject {
                 self.loadMockData()
             }
         }
+    }
+    
+    // MARK: - Museum Methods
+    
+    func fetchMuseums() {
+        #if canImport(FirebaseFirestore)
+        if let db = db {
+            db.collection("museums").addSnapshotListener { [weak self] querySnapshot, error in
+                guard let self = self else { return }
+                
+                Task { @MainActor in
+                    if let error = error {
+                        print("Error fetching museums: \(error.localizedDescription)")
+                        self.loadMockMuseums()
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        self.loadMockMuseums()
+                        return
+                    }
+                    
+                    let fetchedMuseums = documents.compactMap { document -> Museum? in
+                        try? document.data(as: Museum.self)
+                    }
+                    
+                    if fetchedMuseums.isEmpty {
+                        self.loadMockMuseums()
+                    } else {
+                        self.museums = fetchedMuseums
+                    }
+                }
+            }
+            return
+        }
+        #endif
+        
+        // Firestore not configured, load mock data immediately
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.loadMockMuseums()
+            }
+        }
+    }
+    
+    private func loadMockMuseums() {
+        self.museums = [
+            Museum(
+                id: "museum_nasional",
+                name: "Museum Nasional Indonesia",
+                description: "Museum Nasional Indonesia, atau dikenal juga sebagai Museum Gajah, adalah museum arkeologi, sejarah, etnografi, dan geografi terbesar dan terlengkap di Indonesia. Didirikan pada tahun 1778, museum ini menyimpan lebih dari 141.000 koleksi benda-benda warisan budaya dari seluruh Nusantara, termasuk koleksi tekstil tradisional, arca kuno, dan artefak prasejarah.",
+                province: "DKI Jakarta",
+                region: "Jawa",
+                address: "Jl. Medan Merdeka Barat No.12, Gambir, Jakarta Pusat",
+                imageUrl: "https://images.unsplash.com/photo-1609947017136-9daf32a15c8a?auto=format&fit=crop&q=80&w=600",
+                latitude: -6.1764,
+                longitude: 106.8222,
+                budayaIds: ["batik"]
+            ),
+            Museum(
+                id: "museum_sri_baduga",
+                name: "Museum Sri Baduga",
+                description: "Museum Sri Baduga adalah museum negeri Provinsi Jawa Barat yang terletak di Kota Bandung. Museum ini menyimpan koleksi benda-benda bersejarah dan kebudayaan masyarakat Sunda, termasuk alat musik tradisional, kerajinan tangan, senjata tradisional, serta berbagai artefak budaya Sunda lainnya. Nama 'Sri Baduga' diambil dari nama Raja Prabu Sri Baduga Maharaja dari Kerajaan Sunda.",
+                province: "Jawa Barat",
+                region: "Jawa",
+                address: "Jl. BKR No.185, Pelindung Hewan, Bandung",
+                imageUrl: "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?auto=format&fit=crop&q=80&w=600",
+                latitude: -6.9340,
+                longitude: 107.6206,
+                budayaIds: ["angklung"]
+            ),
+            Museum(
+                id: "museum_adityawarman",
+                name: "Museum Adityawarman",
+                description: "Museum Adityawarman adalah museum negeri Provinsi Sumatera Barat yang terletak di Kota Padang. Bangunan museum ini didesain menyerupai bentuk Rumah Gadang (rumah adat Minangkabau) dan menyimpan berbagai koleksi benda budaya Minangkabau serta warisan kuliner tradisional. Museum ini dinamai dari Adityawarman, seorang raja Melayu yang pernah berkuasa di Sumatera Barat pada abad ke-14.",
+                province: "Sumatera Barat",
+                region: "Sumatra",
+                address: "Jl. Diponegoro No.10, Belakang Tangsi, Padang",
+                imageUrl: "https://images.unsplash.com/photo-1605538032432-a9f0c8d9baac?auto=format&fit=crop&q=80&w=600",
+                latitude: -0.9537,
+                longitude: 100.3515,
+                budayaIds: ["rumah_gadang", "rendang"]
+            ),
+            Museum(
+                id: "museum_aceh",
+                name: "Museum Aceh",
+                description: "Museum Aceh adalah museum tertua di Provinsi Aceh yang didirikan pada masa pemerintahan Belanda tahun 1915. Museum ini menyimpan koleksi seni dan budaya masyarakat Aceh, termasuk replika Rumoh Aceh (rumah tradisional Aceh), berbagai naskah kuno, senjata tradisional Rencong, serta dokumentasi seni pertunjukan tradisional seperti Tari Saman yang telah diakui UNESCO.",
+                province: "Aceh",
+                region: "Sumatra",
+                address: "Jl. Sultan Alaidin Mahmudsyah No.12, Banda Aceh",
+                imageUrl: "https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&q=80&w=600",
+                latitude: 5.5553,
+                longitude: 95.3172,
+                budayaIds: ["tari_saman"]
+            ),
+            Museum(
+                id: "museum_bali",
+                name: "Museum Bali",
+                description: "Museum Bali (Bali Museum) adalah museum etnografi tertua di Bali yang terletak di pusat Kota Denpasar. Didirikan pada tahun 1910, museum ini memamerkan koleksi artefak budaya Bali dari masa prasejarah hingga modern, termasuk topeng Barong, alat musik gamelan, lukisan tradisional gaya Kamasan, serta kostum dan properti berbagai tarian sakral Bali seperti Tari Kecak.",
+                province: "Bali",
+                region: "Bali",
+                address: "Jl. Mayor Wisnu No.1, Dangin Puri, Denpasar",
+                imageUrl: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=600",
+                latitude: -8.6557,
+                longitude: 115.2220,
+                budayaIds: ["tari_kecak"]
+            ),
+            Museum(
+                id: "museum_la_galigo",
+                name: "Museum La Galigo",
+                description: "Museum La Galigo adalah museum yang terletak di dalam kompleks Benteng Rotterdam (Fort Rotterdam) di Kota Makassar, Sulawesi Selatan. Museum ini menyimpan koleksi etnografi dari berbagai suku di Sulawesi Selatan, termasuk miniatur Rumah Tongkonan dari suku Toraja, alat tenun tradisional Bugis, naskah Lontara kuno, serta berbagai artefak sejarah Kerajaan Gowa-Tallo.",
+                province: "Sulawesi Selatan",
+                region: "Sulawesi",
+                address: "Jl. Ujung Pandang No.1, Fort Rotterdam, Makassar",
+                imageUrl: "https://images.unsplash.com/photo-1540206395-68808572332f?auto=format&fit=crop&q=80&w=600",
+                latitude: -5.1343,
+                longitude: 119.4050,
+                budayaIds: ["tongkonan"]
+            ),
+            Museum(
+                id: "museum_tenun_ikat",
+                name: "Museum Tenun Ikat",
+                description: "Museum Tenun Ikat adalah museum yang didedikasikan untuk melestarikan seni tenun ikat tradisional Nusa Tenggara Timur. Museum ini memamerkan berbagai koleksi kain tenun ikat dari berbagai kabupaten di NTT, alat-alat tenun tradisional, serta alat musik tradisional Sasando yang merupakan kebanggaan masyarakat Pulau Rote. Museum ini menjadi pusat edukasi tentang warisan budaya tekstil NTT.",
+                province: "Nusa Tenggara Timur",
+                region: "Nusa Tenggara",
+                address: "Jl. Eltari, Kelapa Lima, Kupang",
+                imageUrl: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=600",
+                latitude: -10.1618,
+                longitude: 123.5853,
+                budayaIds: ["sasando"]
+            )
+        ]
+    }
+    
+    /// Returns the Budaya items whose IDs match the museum's budayaIds.
+    /// This uses the *existing* items array — no data duplication.
+    func budayaForMuseum(_ museum: Museum) -> [Budaya] {
+        items.filter { museum.budayaIds.contains($0.id) }
     }
     
     private func loadMockData() {

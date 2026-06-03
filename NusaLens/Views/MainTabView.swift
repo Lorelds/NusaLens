@@ -24,17 +24,23 @@ struct MainTabView: View {
                 }
                 .tag(1)
             
+            MuseumListView()
+                .tabItem {
+                    Label("Museum", systemImage: "building.columns.fill")
+                }
+                .tag(2)
+            
             DailyTriviaView()
                 .tabItem {
                     Label("Trivia", systemImage: "lightbulb.fill")
                 }
-                .tag(2)
+                .tag(3)
             
             LoginView()
                 .tabItem {
                     Label("Profil", systemImage: "person.circle.fill")
                 }
-                .tag(3)
+                .tag(4)
         }
         .environmentObject(cultureService)
         .environmentObject(authService)

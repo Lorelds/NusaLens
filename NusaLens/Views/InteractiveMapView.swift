@@ -33,6 +33,11 @@ struct InteractiveMapView: View {
     
     @State private var latitudeDelta: Double? = nil
     
+    // Museum
+    @State private var showMuseumMarkers = true
+    @State private var selectedMuseum: Museum? = nil
+    @State private var showMuseumSheet = false
+    
     var filteredItems: [Budaya] {
         service.items.filter { item in
             selectedCategory == nil || item.category == selectedCategory
@@ -88,6 +93,37 @@ struct InteractiveMapView: View {
                                         .font(.system(size: dynamicSize * 0.45, weight: .bold))
                                         .foregroundStyle(.white)
                                         .minimumScaleFactor(0.5)
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Museum markers
+                    if showMuseumMarkers {
+                        ForEach(service.museums) { museum in
+                            Annotation(museum.name, coordinate: museum.coordinate) {
+                                Button(action: {
+                                    selectedMuseum = museum
+                                    showMuseumSheet = true
+                                }) {
+                                    let delta = latitudeDelta ?? 12.0
+                                    let progress = max(0, min(1, (delta - 2.0) / 15.0))
+                                    let dynamicSize: CGFloat = 40.0 - (CGFloat(progress) * 16.0)
+                                    
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(Color.orange)
+                                            .frame(width: dynamicSize, height: dynamicSize)
+                                            .shadow(color: .black.opacity(0.2), radius: 4)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.white, lineWidth: 1.5)
+                                            )
+                                        
+                                        Image(systemName: "building.columns.fill")
+                                            .font(.system(size: dynamicSize * 0.4, weight: .bold))
+                                            .foregroundStyle(.white)
+                                    }
                                 }
                             }
                         }
@@ -158,6 +194,26 @@ struct InteractiveMapView: View {
                         .padding(.horizontal, 20)
                         .padding(.bottom, 10)
                     }
+                    
+                    // Museum toggle
+                    HStack {
+                        Button(action: { showMuseumMarkers.toggle() }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "building.columns.fill")
+                                Text(showMuseumMarkers ? "Museum" : "Museum")
+                            }
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(showMuseumMarkers ? Color.orange : Color(.systemBackground))
+                            .foregroundStyle(showMuseumMarkers ? .white : .primary)
+                            .clipShape(Capsule())
+                            .shadow(color: Color.black.opacity(0.1), radius: 4)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
                 }
                 .padding(.top, 16)
             }
@@ -168,6 +224,23 @@ struct InteractiveMapView: View {
                     ProvinceCulturalListView(province: province, items: itemsInSelectedProvince)
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
+                }
+            }
+            .sheet(isPresented: $showMuseumSheet, onDismiss: { selectedMuseum = nil }) {
+                if let museum = selectedMuseum {
+                    NavigationStack {
+                        MuseumDetailView(museum: museum)
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    Button("Selesai") {
+                                        showMuseumSheet = false
+                                    }
+                                    .fontWeight(.semibold)
+                                }
+                            }
+                    }
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
                 }
             }
             .alert(searchSuggestion != nil ? "Apakah maksud Anda \(searchSuggestion!)?" : "Lokasi tidak ditemukan", isPresented: $showSuggestionAlert) {

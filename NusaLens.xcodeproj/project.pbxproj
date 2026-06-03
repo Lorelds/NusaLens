@@ -58,22 +58,16 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3FD46DA92FC032EC00852A93 /* NusaLens */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = NusaLens;
 			sourceTree = "<group>";
 		};
 		3FD46DB72FC032EE00852A93 /* NusaLensTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = NusaLensTests;
 			sourceTree = "<group>";
 		};
 		3FD46DC12FC032EE00852A93 /* NusaLensUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = NusaLensUITests;
 			sourceTree = "<group>";
 		};
@@ -130,7 +124,6 @@
 				DC7E00370E76256116226895 /* CultureService.swift */,
 				FEC22483954C99D10DEDF0DB /* TriviaService.swift */,
 			);
-			name = NusaLensWatch;
 			path = NusaLensWatch;
 			sourceTree = "<group>";
 		};
