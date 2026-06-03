@@ -40,6 +40,7 @@ struct NusaLensApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .tint(Color.Theme.primary)
         }
     }
 }

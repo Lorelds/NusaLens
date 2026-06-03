@@ -45,7 +45,7 @@ struct MuseumListView: View {
                     }
                 }
                 .padding(12)
-                .background(Color(.secondarySystemGroupedBackground))
+                .background(Color.white)
                 .cornerRadius(12)
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
@@ -99,7 +99,7 @@ struct MuseumListView: View {
             }
             .navigationTitle("Museum")
             .navigationBarTitleDisplayMode(.large)
-            .background(Color(.systemGroupedBackground))
+            .background(Color.Theme.background.ignoresSafeArea())
             .navigationDestination(for: Museum.self) { museum in
                 MuseumDetailView(museum: museum)
             }

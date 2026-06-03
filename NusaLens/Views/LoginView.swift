@@ -40,10 +40,10 @@ struct LoginView: View {
                         if authService.isAdmin {
                             Text("Status: Admin")
                                 .font(.headline)
-                                .foregroundStyle(Color.accentColor)
+                                .foregroundStyle(Color.Theme.primary)
                                 .padding(.vertical, 4)
                                 .padding(.horizontal, 12)
-                                .background(Color.accentColor.opacity(0.1))
+                                .background(Color.Theme.primary.opacity(0.1))
                                 .cornerRadius(8)
                         } else {
                             Text("Status: User Biasa")
@@ -103,7 +103,7 @@ struct LoginView: View {
                         
                         Image(systemName: isLoginMode ? "lock.shield.fill" : "person.badge.plus.fill")
                             .font(.system(size: 80))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(Color.Theme.primary)
                         
                         Text(isLoginMode ? "Masuk ke Sistem" : "Buat Akun Baru")
                             .font(.largeTitle)
@@ -120,12 +120,14 @@ struct LoginView: View {
                                 .keyboardType(.emailAddress)
                                 .autocapitalization(.none)
                                 .padding()
-                                .background(Color(.systemGray6))
+                                .background(Color.white)
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.Theme.secondary.opacity(0.5), lineWidth: 1))
                                 .cornerRadius(12)
                             
                             SecureField("Password", text: $password)
                                 .padding()
-                                .background(Color(.systemGray6))
+                                .background(Color.white)
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.Theme.secondary.opacity(0.5), lineWidth: 1))
                                 .cornerRadius(12)
                         }
                         
@@ -139,7 +141,7 @@ struct LoginView: View {
                                     Text("Lupa Password?")
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
-                                        .foregroundStyle(Color.accentColor)
+                                        .foregroundStyle(Color.Theme.primary)
                                 }
                             }
                         }
@@ -173,7 +175,7 @@ struct LoginView: View {
                                     .tint(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding()
-                                    .background(Color.accentColor)
+                                    .background(Color.Theme.primary)
                                     .cornerRadius(12)
                             } else {
                                 Text(isLoginMode ? "Masuk" : "Daftar")
@@ -181,7 +183,7 @@ struct LoginView: View {
                                     .foregroundStyle(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding()
-                                    .background(Color.accentColor)
+                                    .background(Color.Theme.primary)
                                     .cornerRadius(12)
                             }
                         }
@@ -191,6 +193,7 @@ struct LoginView: View {
                 }
                 .padding(24)
             }
+            .background(Color.Theme.background.ignoresSafeArea())
             .navigationTitle("Profil")
             .alert("Reset Password", isPresented: $showResetAlert) {
                 TextField("Masukkan Email", text: $resetEmail)
@@ -276,7 +279,7 @@ struct ProfileStreakBannerView: View {
             .cornerRadius(12)
         }
         .padding(16)
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
         .overlay(

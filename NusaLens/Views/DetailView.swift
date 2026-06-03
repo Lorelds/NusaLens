@@ -121,7 +121,7 @@ struct DetailView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.secondarySystemGroupedBackground))
+                        .background(Color.white)
                         .cornerRadius(12)
                         .shadow(color: Color.black.opacity(0.03), radius: 4)
                         
@@ -160,7 +160,7 @@ struct DetailView: View {
                 .frame(width: geo.size.width)
             }
             .navigationBarTitleDisplayMode(.inline)
-            .background(Color(.systemGroupedBackground))
+            .background(Color.Theme.background.ignoresSafeArea())
             .toolbar {
                 if authService.isAdmin {
                     ToolbarItem(placement: .topBarTrailing) {

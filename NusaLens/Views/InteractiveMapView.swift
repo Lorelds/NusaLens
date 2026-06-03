@@ -419,7 +419,7 @@ struct ProvinceCulturalListView: View {
                     }
                 }
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color.Theme.background.ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Selesai") {

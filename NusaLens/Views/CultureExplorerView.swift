@@ -50,8 +50,9 @@ struct CultureExplorerView: View {
                     }
                 }
                 .padding(12)
-                .background(Color(.secondarySystemGroupedBackground))
+                .background(Color.white)
                 .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.Theme.secondary.opacity(0.3), lineWidth: 1))
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
                 .padding(.bottom, 8)
@@ -66,9 +67,10 @@ struct CultureExplorerView: View {
                                 .fontWeight(.semibold)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(selectedCategory == nil ? Color.accentColor : Color(.secondarySystemGroupedBackground))
-                                .foregroundStyle(selectedCategory == nil ? .white : .primary)
+                                .background(selectedCategory == nil ? Color.Theme.primary : Color.white)
+                                .foregroundStyle(selectedCategory == nil ? .white : Color.Theme.primary)
                                 .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color.Theme.secondary.opacity(0.3), lineWidth: 1))
                                 .shadow(color: Color.black.opacity(selectedCategory == nil ? 0.1 : 0.02), radius: 4)
                         }
                         
@@ -82,9 +84,10 @@ struct CultureExplorerView: View {
                                 .fontWeight(.semibold)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(selectedCategory == category ? Color.accentColor : Color(.secondarySystemGroupedBackground))
-                                .foregroundStyle(selectedCategory == category ? .white : .primary)
+                                .background(selectedCategory == category ? Color.Theme.primary : Color.white)
+                                .foregroundStyle(selectedCategory == category ? .white : Color.Theme.primary)
                                 .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color.Theme.secondary.opacity(0.3), lineWidth: 1))
                                 .shadow(color: Color.black.opacity(selectedCategory == category ? 0.1 : 0.02), radius: 4)
                             }
                         }
@@ -138,7 +141,7 @@ struct CultureExplorerView: View {
             }
             .navigationTitle("NusaLens")
             .navigationBarTitleDisplayMode(.large)
-            .background(Color(.systemGroupedBackground))
+            .background(Color.Theme.background.ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     if authService.isAdmin {

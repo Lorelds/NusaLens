@@ -169,7 +169,7 @@ struct DailyTriviaView: View {
                             }
                         }
                         .padding(24)
-                        .background(Color(.secondarySystemGroupedBackground))
+                        .background(Color.white)
                         .cornerRadius(20)
                         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
                     } else {
@@ -226,7 +226,7 @@ struct DailyTriviaView: View {
                         }
                     }
                     .padding(24)
-                    .background(Color(.secondarySystemGroupedBackground))
+                    .background(Color.white)
                     .cornerRadius(20)
                     .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
                 }
@@ -235,7 +235,7 @@ struct DailyTriviaView: View {
                 .frame(maxWidth: .infinity)
             }
             .navigationTitle("Trivia Budaya")
-            .background(Color(.systemGroupedBackground))
+            .background(Color.Theme.background.ignoresSafeArea())
             .alert("Izin Notifikasi Ditolak", isPresented: $showingPermissionAlert) {
                 Button("Buka Pengaturan") {
                     if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
@@ -373,7 +373,7 @@ struct StreakCardView: View {
             }
         }
         .padding(20)
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
         .overlay(
