@@ -7,14 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		695AC97435B215F48B32F9E6 /* NusaLensWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BCA9D80E349B87AEF95E0EB /* NusaLensWatchApp.swift */; };
 		6E8AB56B7BF92817E8408C7B /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 1A54F3533F477F2CD4734DEC /* FirebaseFirestore */; };
 		9835FDA087EE1B509E9C2D9A /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 0AD116E2643E8D09C27A0F56 /* FirebaseAuth */; };
 		9E19AA08F9566766D5C43193 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 833B5DC878BDA6904D2EEE7F /* FirebaseStorage */; };
+		B28B2936048E89D72943523F /* Budaya.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89153A91A5A57739FD583A49 /* Budaya.swift */; };
+		C54AAAFF71A1DED40198E828 /* Trivia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FE90E099DDE04DB7890EDAD /* Trivia.swift */; };
 		C6F6E6112D5E1A66F62DE559 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 359EF3D20636042F3533ABE3 /* FirebaseCore */; };
 		CF997EEB3C2FD71555F3A66E /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 7C32204C59D302D76303CCEE /* FirebaseStorage */; };
 		D0C616643D3BA0BC327FDA1C /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = B33C0216E073CFB26E93D0AE /* FirebaseCore */; };
+		D212D12F22D9E428F4624C73 /* TriviaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEC22483954C99D10DEDF0DB /* TriviaService.swift */; };
 		DFA99283E852EC321D9E3BCE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = B67D43C6529D433438B3242C /* FirebaseAuth */; };
+		E4233A8334C983E9166E139E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C5D0D1F92EA853E516D768E4 /* Foundation.framework */; };
 		EE81994978BBE1F4D2AC9B7D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 60C52A44DF659888E7D48AF8 /* FirebaseFirestore */; };
+		F0A036E38191749FB0C1CF7B /* CultureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC7E00370E76256116226895 /* CultureService.swift */; };
+		FC43C0854C7470D62FB06B87 /* WatchDailyTriviaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 496D8DF54F217A865FF18844 /* WatchDailyTriviaView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,30 +42,52 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0FE90E099DDE04DB7890EDAD /* Trivia.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Trivia.swift; path = ../NusaLens/Models/Trivia.swift; sourceTree = "<group>"; };
+		1BCA9D80E349B87AEF95E0EB /* NusaLensWatchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NusaLensWatchApp.swift; sourceTree = "<group>"; };
 		3FD46DA72FC032EC00852A93 /* NusaLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NusaLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FD46DB42FC032EE00852A93 /* NusaLensTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NusaLensTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FD46DBE2FC032EE00852A93 /* NusaLensUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NusaLensUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		496D8DF54F217A865FF18844 /* WatchDailyTriviaView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchDailyTriviaView.swift; sourceTree = "<group>"; };
+		5E7CDA6E664471D0FB3B7AA3 /* NusaLensWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NusaLensWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		89153A91A5A57739FD583A49 /* Budaya.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Budaya.swift; path = ../NusaLens/Models/Budaya.swift; sourceTree = "<group>"; };
+		C5D0D1F92EA853E516D768E4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS11.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		DC7E00370E76256116226895 /* CultureService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CultureService.swift; path = ../NusaLens/Services/CultureService.swift; sourceTree = "<group>"; };
+		FEC22483954C99D10DEDF0DB /* TriviaService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TriviaService.swift; path = ../NusaLens/Services/TriviaService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3FD46DA92FC032EC00852A93 /* NusaLens */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = NusaLens;
 			sourceTree = "<group>";
 		};
 		3FD46DB72FC032EE00852A93 /* NusaLensTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = NusaLensTests;
 			sourceTree = "<group>";
 		};
 		3FD46DC12FC032EE00852A93 /* NusaLensUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = NusaLensUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		35A85AD51E3F725FC5901360 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E4233A8334C983E9166E139E /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3FD46DA42FC032EC00852A93 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -91,6 +120,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		21541CB7F4D7DC3B3D616922 /* NusaLensWatch */ = {
+			isa = PBXGroup;
+			children = (
+				1BCA9D80E349B87AEF95E0EB /* NusaLensWatchApp.swift */,
+				496D8DF54F217A865FF18844 /* WatchDailyTriviaView.swift */,
+				89153A91A5A57739FD583A49 /* Budaya.swift */,
+				0FE90E099DDE04DB7890EDAD /* Trivia.swift */,
+				DC7E00370E76256116226895 /* CultureService.swift */,
+				FEC22483954C99D10DEDF0DB /* TriviaService.swift */,
+			);
+			name = NusaLensWatch;
+			path = NusaLensWatch;
+			sourceTree = "<group>";
+		};
 		3FD46D9E2FC032EC00852A93 = {
 			isa = PBXGroup;
 			children = (
@@ -98,6 +141,8 @@
 				3FD46DB72FC032EE00852A93 /* NusaLensTests */,
 				3FD46DC12FC032EE00852A93 /* NusaLensUITests */,
 				3FD46DA82FC032EC00852A93 /* Products */,
+				AFAE77EB88E0A91EF73CCCD1 /* Frameworks */,
+				21541CB7F4D7DC3B3D616922 /* NusaLensWatch */,
 			);
 			sourceTree = "<group>";
 		};
@@ -107,8 +152,25 @@
 				3FD46DA72FC032EC00852A93 /* NusaLens.app */,
 				3FD46DB42FC032EE00852A93 /* NusaLensTests.xctest */,
 				3FD46DBE2FC032EE00852A93 /* NusaLensUITests.xctest */,
+				5E7CDA6E664471D0FB3B7AA3 /* NusaLensWatch.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AFAE77EB88E0A91EF73CCCD1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CF9DC8B534C38C86BB97A404 /* watchOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CF9DC8B534C38C86BB97A404 /* watchOS */ = {
+			isa = PBXGroup;
+			children = (
+				C5D0D1F92EA853E516D768E4 /* Foundation.framework */,
+			);
+			name = watchOS;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -157,8 +219,6 @@
 				3FD46DB72FC032EE00852A93 /* NusaLensTests */,
 			);
 			name = NusaLensTests;
-			packageProductDependencies = (
-			);
 			productName = NusaLensTests;
 			productReference = 3FD46DB42FC032EE00852A93 /* NusaLensTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -189,6 +249,23 @@
 			productName = NusaLensUITests;
 			productReference = 3FD46DBE2FC032EE00852A93 /* NusaLensUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		87E3DC505FEA51D1668D3B2B /* NusaLensWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2323B291EF67EDB8D147E28D /* Build configuration list for PBXNativeTarget "NusaLensWatch" */;
+			buildPhases = (
+				34AA50B92FBB846719613C57 /* Sources */,
+				35A85AD51E3F725FC5901360 /* Frameworks */,
+				96E7E91A904190937F4241A8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NusaLensWatch;
+			productName = NusaLensWatch;
+			productReference = 5E7CDA6E664471D0FB3B7AA3 /* NusaLensWatch.app */;
+			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
@@ -233,6 +310,7 @@
 				3FD46DA62FC032EC00852A93 /* NusaLens */,
 				3FD46DB32FC032EE00852A93 /* NusaLensTests */,
 				3FD46DBD2FC032EE00852A93 /* NusaLensUITests */,
+				87E3DC505FEA51D1668D3B2B /* NusaLensWatch */,
 			);
 		};
 /* End PBXProject section */
@@ -259,9 +337,29 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		96E7E91A904190937F4241A8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		34AA50B92FBB846719613C57 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				695AC97435B215F48B32F9E6 /* NusaLensWatchApp.swift in Sources */,
+				FC43C0854C7470D62FB06B87 /* WatchDailyTriviaView.swift in Sources */,
+				B28B2936048E89D72943523F /* Budaya.swift in Sources */,
+				C54AAAFF71A1DED40198E828 /* Trivia.swift in Sources */,
+				F0A036E38191749FB0C1CF7B /* CultureService.swift in Sources */,
+				D212D12F22D9E428F4624C73 /* TriviaService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3FD46DA32FC032EC00852A93 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -564,9 +662,57 @@
 			};
 			name = Release;
 		};
+		6DBCC77D75E0FBF6A2E34A75 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = Yuriel.NusaLens;
+				PRODUCT_BUNDLE_IDENTIFIER = Yuriel.NusaLens.watchkitapp;
+				PRODUCT_NAME = NusaLensWatch;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		A5B9F1C30214AC31FC70A03A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = Yuriel.NusaLens;
+				PRODUCT_BUNDLE_IDENTIFIER = Yuriel.NusaLens.watchkitapp;
+				PRODUCT_NAME = NusaLensWatch;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2323B291EF67EDB8D147E28D /* Build configuration list for PBXNativeTarget "NusaLensWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A5B9F1C30214AC31FC70A03A /* Release */,
+				6DBCC77D75E0FBF6A2E34A75 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		3FD46DA22FC032EC00852A93 /* Build configuration list for PBXProject "NusaLens" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

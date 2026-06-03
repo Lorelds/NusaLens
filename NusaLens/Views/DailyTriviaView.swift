@@ -189,6 +189,8 @@ struct DailyTriviaView: View {
                     .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
                 }
                 .padding(20)
+                .frame(maxWidth: 700)
+                .frame(maxWidth: .infinity)
             }
             .navigationTitle("Trivia Budaya")
             .background(Color(.systemGroupedBackground))
