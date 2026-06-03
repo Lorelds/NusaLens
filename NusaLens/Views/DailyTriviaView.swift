@@ -24,7 +24,9 @@ struct DailyTriviaView: View {
                         currentStreak: service.currentStreak,
                         bestStreak: service.bestStreak,
                         hasAnsweredToday: service.hasAnsweredToday,
-                        animate: animateStreak
+                        animate:
+                        
+                         animateStreak
                     )
                     
                     // MARK: - Trivia Card
