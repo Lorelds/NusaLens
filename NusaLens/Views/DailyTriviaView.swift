@@ -17,7 +17,7 @@ struct DailyTriviaView: View {
                 VStack(spacing: 24) {
                     
                     // MARK: - Streak Card
-                    if authService.isAuthenticated {
+                    if authService.isAuthenticated { // Kalau sudah login, streak muncul
                         StreakCardView(
                             currentStreak: service.currentStreak,
                             bestStreak: service.bestStreak,
@@ -27,7 +27,7 @@ struct DailyTriviaView: View {
                     }
                     
                     // MARK: - Trivia Card
-                    if let trivia = service.dailyTrivia {
+                    if let trivia = service.dailyTrivia { // Jika trivia ada
                         VStack(alignment: .leading, spacing: 20) {
                             // Card Header
                             HStack {
@@ -42,7 +42,7 @@ struct DailyTriviaView: View {
                                     .font(.title2)
                             }
                             
-                            // 
+                            // Kalau Quiz ada
                             if trivia.isQuiz, let question = trivia.question, let options = trivia.options { 
                                 Text(question)
                                     .font(.title3)
@@ -50,7 +50,7 @@ struct DailyTriviaView: View {
                                     .lineSpacing(4)
                                     .padding(.bottom, 8)
                                 
-                                // Already answered today banner
+                                // Jika sudah menjawab quiz hari ini
                                 if service.hasAnsweredToday && !viewModel.answerSubmitted {
                                     HStack(spacing: 8) {
                                         Image(systemName: "checkmark.seal.fill")
@@ -65,11 +65,12 @@ struct DailyTriviaView: View {
                                     .cornerRadius(12)
                                 }
                                 
+                                // Untuk menampilkan pilihan jawaban
                                 VStack(spacing: 12) {
-                                    ForEach(0..<options.count, id: \.self) { index in
+                                    ForEach(0..<options.count, id: \.self) { index in // Pilihan jawaban
                                         Button(action: {
-                                            if !viewModel.answerSubmitted && !service.hasAnsweredToday {
-                                                viewModel.selectedOptionIndex = index
+                                            if !viewModel.answerSubmitted && !service.hasAnsweredToday { // Jika belum menjawab
+                                                viewModel.selectedOptionIndex = index // Pilihan jawaban
                                             }
                                         }) {
                                             HStack {
@@ -78,18 +79,18 @@ struct DailyTriviaView: View {
                                                     .fontWeight(.medium)
                                                 Spacer()
                                                 
-                                                if viewModel.answerSubmitted {
-                                                    if index == trivia.correctOptionIndex {
+                                                if viewModel.answerSubmitted { // Mengecek jawaban yang dikirim
+                                                    if index == trivia.correctOptionIndex { // Jika jawaban benar
                                                         Image(systemName: "checkmark.circle.fill")
                                                             .foregroundStyle(.green)
-                                                    } else if viewModel.selectedOptionIndex == index {
+                                                    } else if viewModel.selectedOptionIndex == index { // Jika jawaban salah
                                                         Image(systemName: "xmark.circle.fill")
                                                             .foregroundStyle(.red)
                                                     }
-                                                } else {
-                                                    Circle()
-                                                        .strokeBorder(
-                                                            viewModel.selectedOptionIndex == index ? Color.accentColor : Color.secondary.opacity(0.3),
+                                                } else { // Jika belum menjawab
+                                                    Circle() 
+                                                        .strokeBorder(   
+                                                            viewModel.selectedOptionIndex == index ? Color.accentColor : Color.secondary.opacity(0.3), // warnai tombol yang dipilih 
                                                             lineWidth: 2
                                                         )
                                                         .frame(width: 20, height: 20)
@@ -98,17 +99,16 @@ struct DailyTriviaView: View {
                                             .padding()
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                             .background(
-                                                viewModel.buttonBackgroundColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0)
+                                                viewModel.buttonBackgroundColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0) // Warna tombol jika jawaban benar atau salah
                                             )
                                             .cornerRadius(12)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(viewModel.buttonBorderColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0), lineWidth: 1.5)
+                                                    .stroke(viewModel.buttonBorderColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0), lineWidth: 1.5) // Warna outline tombol
                                             )
                                         }
                                         .buttonStyle(.plain)
-                                        .disabled(viewModel.answerSubmitted || service.hasAnsweredToday)
-                                    }
+                                        .disabled(viewModel.answerSubmitted || service.hasAnsweredToday) // Disable tombol jika sudah menjawab 
                                 }
                                 
                                 if !viewModel.answerSubmitted && !service.hasAnsweredToday {

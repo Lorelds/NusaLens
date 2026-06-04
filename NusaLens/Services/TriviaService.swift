@@ -221,33 +221,30 @@ class TriviaService: ObservableObject {
     }
     
     func recordTriviaAnswer(wasCorrect: Bool) {
-        guard !hasAnsweredToday else { return } // Jika user sudah menjawab trivia, function berhenti
+        guard !hasAnsweredToday else { return } // Jika belum jawab, jalankan function
         
         let calendar = Calendar.current
-        let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date
+        let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date // Mengecek tanggal terakhir user menjawab
         
-        if let lastDate = lastDate {
-            if calendar.isDateInYesterday(lastDate) {
-                // Hari berturut-turut — streak lanjut
-                currentStreak += 1
-            } else if !calendar.isDateInToday(lastDate) {
-                // Melewatkan hari — streak mulai dari 1
-                currentStreak = 1
+        if let lastDate = lastDate { 
+            if calendar.isDateInYesterday(lastDate) { // Jika user menjawab trivia kemarin
+                currentStreak += 1 // Tambahkan streak
+            } else if !calendar.isDateInToday(lastDate) { // Jika user tidak menjawab trivia kemarin
+                currentStreak = 1 // Reset streak
             }
-        } else {
-            // Pertama kali menjawab
-            currentStreak = 1
+        } else { // Pertama kali menjawab, mulai dari 1
+            currentStreak = 1 
         }
         
-        if currentStreak > bestStreak {
+        if currentStreak > bestStreak { // Jika streak melewati best, maka ikut streak sekarang
             bestStreak = currentStreak
         }
         
-        hasAnsweredToday = true
+        hasAnsweredToday = true // User sudah jawab, kunci trivia
         
-        UserDefaults.standard.set(currentStreak, forKey: "trivia_current_streak")
-        UserDefaults.standard.set(bestStreak, forKey: "trivia_best_streak")
-        UserDefaults.standard.set(Date(), forKey: "trivia_last_answered_date")
+        UserDefaults.standard.set(currentStreak, forKey: "trivia_current_streak") // Simpan streak ke UserDefaults
+        UserDefaults.standard.set(bestStreak, forKey: "trivia_best_streak") // Simpan best streak ke UserDefaults
+        UserDefaults.standard.set(Date(), forKey: "trivia_last_answered_date") // Simpan tanggal terakhir menjawab ke UserDefaults
     }
 
     func seedDatabase() {
