@@ -20,14 +20,14 @@ struct LoginView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    // MARK: - Streak Banner (always visible)
-                    ProfileStreakBannerView(
-                        currentStreak: triviaService.currentStreak,
-                        bestStreak: triviaService.bestStreak,
-                        hasAnsweredToday: triviaService.hasAnsweredToday
-                    )
-                    
                     if authService.isAuthenticated {
+                        // MARK: - Streak Banner (only visible after login)
+                        ProfileStreakBannerView(
+                            currentStreak: triviaService.currentStreak,
+                            bestStreak: triviaService.bestStreak,
+                            hasAnsweredToday: triviaService.hasAnsweredToday
+                        )
+                        
                         Image(systemName: "person.crop.circle.fill.badge.checkmark")
                             .font(.system(size: 80))
                             .foregroundStyle(.green)

@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct DailyTriviaView: View {
+    @EnvironmentObject var authService: AuthService
     @StateObject private var service = TriviaService()
     @StateObject private var cultureService = CultureService()
     
@@ -20,12 +21,14 @@ struct DailyTriviaView: View {
                 VStack(spacing: 24) {
                     
                     // MARK: - Streak Card
-                    StreakCardView(
-                        currentStreak: service.currentStreak,
-                        bestStreak: service.bestStreak,
-                        hasAnsweredToday: service.hasAnsweredToday,
-                        animate: animateStreak
-                    )
+                    if authService.isAuthenticated {
+                        StreakCardView(
+                            currentStreak: service.currentStreak,
+                            bestStreak: service.bestStreak,
+                            hasAnsweredToday: service.hasAnsweredToday,
+                            animate: animateStreak
+                        )
+                    }
                     
                     // MARK: - Trivia Card
                     if let trivia = service.dailyTrivia {
@@ -393,4 +396,5 @@ struct StreakCardView: View {
 
 #Preview {
     DailyTriviaView()
+        .environmentObject(AuthService())
 }
