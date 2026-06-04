@@ -9,10 +9,10 @@ struct DailyTriviaView: View {
     @StateObject private var service = TriviaService()
     @StateObject private var cultureService = CultureService()
     
-    @State private var selectedOptionIndex: Int? = nil
-    @State private var answerSubmitted = false
-    @State private var showingPermissionAlert = false
-    @State private var animateStreak = false
+    @State private var selectedOptionIndex: Int? = nil // Indeks jawaban yang dipilih
+    @State private var answerSubmitted = false // Status jawaban apakah sudah dikirim
+    @State private var showingPermissionAlert = false // Status notifikasi apakah diizinkan
+    @State private var animateStreak = false // Status animasi streak
     
     var body: some View {
         NavigationStack {
@@ -24,9 +24,7 @@ struct DailyTriviaView: View {
                         currentStreak: service.currentStreak,
                         bestStreak: service.bestStreak,
                         hasAnsweredToday: service.hasAnsweredToday,
-                        animate:
-                        
-                         animateStreak
+                        animate: animateStreak
                     )
                     
                     // MARK: - Trivia Card
@@ -45,7 +43,8 @@ struct DailyTriviaView: View {
                                     .font(.title2)
                             }
                             
-                            if trivia.isQuiz, let question = trivia.question, let options = trivia.options {
+                            // 
+                            if trivia.isQuiz, let question = trivia.question, let options = trivia.options { 
                                 Text(question)
                                     .font(.title3)
                                     .fontWeight(.bold)
@@ -255,26 +254,27 @@ struct DailyTriviaView: View {
         }
     }
     
+    // Warna Background Tombol Pilihan Jawaban 
     private func buttonBackgroundColor(index: Int, correctIndex: Int) -> Color {
         guard answerSubmitted else {
-            return selectedOptionIndex == index ? Color.accentColor.opacity(0.08) : Color(.systemGray6)
+            return selectedOptionIndex == index ? Color.accentColor.opacity(0.08) : Color(.systemGray6) // Pilih jawaban
         }
-        if index == correctIndex { return Color.green.opacity(0.1) }
-        if selectedOptionIndex == index { return Color.red.opacity(0.1) }
-        return Color(.systemGray6)
+        if index == correctIndex { return Color.green.opacity(0.1) } // Jika jawaban benar, tombol akan berwarna hijau 
+        if selectedOptionIndex == index { return Color.red.opacity(0.1) } // Jika jawaban salah, tombol akan berwarna merah 
+        return Color(.systemGray6) // Jika jawaban tidak dipilih, tombol akan berwarna abu-abu
     }
     
     private func buttonBorderColor(index: Int) -> Color {
-        guard answerSubmitted else {
-            return selectedOptionIndex == index ? Color.accentColor : Color.clear
+        guard answerSubmitted else { 
+            return selectedOptionIndex == index ? Color.accentColor : Color.clear // Jika jawaban belum dikirim tombol akan berwarna aksen warna 
         }
-        if index == trivia.correctOptionIndex { return Color.green }
-        if selectedOptionIndex == index { return Color.red }
+        if index == trivia.correctOptionIndex { return Color.green } // Jika jawaban benar
+        if selectedOptionIndex == index { return Color.red } // Jika jawaban salah
         return Color.clear
     }
     
     private var trivia: Trivia {
-        service.dailyTrivia ?? Trivia(id: "", fact: "")
+        service.dailyTrivia ?? Trivia(id: "", fact: "") 
     }
 }
 
@@ -285,6 +285,7 @@ struct StreakCardView: View {
     let hasAnsweredToday: Bool
     let animate: Bool
     
+    // Warna Api
     private var flameColor: Color {
         if currentStreak == 0 {
             return Color(.systemGray3)
@@ -296,6 +297,7 @@ struct StreakCardView: View {
         }
     }
     
+    // Simbol Api 
     var body: some View {
         VStack(spacing: 16) {
             HStack(spacing: 20) {
@@ -335,7 +337,7 @@ struct StreakCardView: View {
                 Spacer()
             }
             
-            Divider()
+            Divider() 
             
             // Best Streak & Status Row
             HStack {
@@ -353,13 +355,13 @@ struct StreakCardView: View {
                             .fontWeight(.bold)
                     }
                 }
-                
+             
                 Spacer()
                 
                 // Status badge
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(hasAnsweredToday ? Color.green : Color.orange)
+                        .fill(hasAnsweredToday ? Color.green : Color.orange) 
                         .frame(width: 8, height: 8)
                     Text(hasAnsweredToday ? "Sudah dijawab" : "Belum dijawab")
                         .font(.caption)

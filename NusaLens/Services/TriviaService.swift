@@ -204,23 +204,24 @@ class TriviaService: ObservableObject {
     // MARK: - Streak Logic
     
     private func loadStreakData() {
-        currentStreak = UserDefaults.standard.integer(forKey: "trivia_current_streak")
-        bestStreak = UserDefaults.standard.integer(forKey: "trivia_best_streak")
+        currentStreak = UserDefaults.standard.integer(forKey: "trivia_current_streak") // Mengecek data streak hari ini
+        bestStreak = UserDefaults.standard.integer(forKey: "trivia_best_streak") // Mengecek data streak terbaik
         
-        if let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date {
-            hasAnsweredToday = Calendar.current.isDateInToday(lastDate)
+        // Jika user menjawab trivia kemarin, lanjutkan streaknya
+        if let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date { // Jika user menjawab trivia kemarin
+            hasAnsweredToday = Calendar.current.isDateInToday(lastDate) // Mengecek apakah user sudah menjawab trivia hari ini
             // Streak patah jika lewat lebih dari 1 hari
-            if !Calendar.current.isDateInToday(lastDate) && !Calendar.current.isDateInYesterday(lastDate) {
-                currentStreak = 0
-                UserDefaults.standard.set(0, forKey: "trivia_current_streak")
+            if !Calendar.current.isDateInToday(lastDate) && !Calendar.current.isDateInYesterday(lastDate) { // Jika user tidak menjawab trivia kemarin
+                currentStreak = 0 // Reset streak
+                UserDefaults.standard.set(0, forKey: "trivia_current_streak") // Simpan streak reset ke UserDefaults
             }
         } else {
-            hasAnsweredToday = false
+            hasAnsweredToday = false // User belum pernah menjawab trivia
         }
     }
     
     func recordTriviaAnswer(wasCorrect: Bool) {
-        guard !hasAnsweredToday else { return }
+        guard !hasAnsweredToday else { return } // Jika user sudah menjawab trivia, function berhenti
         
         let calendar = Calendar.current
         let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date
