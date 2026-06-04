@@ -39,6 +39,7 @@ class TriviaService: ObservableObject {
         checkNotificationStatus()
     }
     
+    // MARK: - Load Setting
     private func loadSettings() {
         notificationsEnabled = UserDefaults.standard.bool(forKey: "trivia_notifications_enabled")
         if let savedTime = UserDefaults.standard.object(forKey: "trivia_preferred_time") as? Date {
@@ -51,6 +52,7 @@ class TriviaService: ObservableObject {
         }
     }
     
+    // MARK: - Setting
     func saveSettings(enabled: Bool, time: Date) {
         self.notificationsEnabled = enabled
         self.preferredTime = time
@@ -100,6 +102,7 @@ class TriviaService: ObservableObject {
         self.loadMockTrivia()
     }
     
+    // MARK: List Quiz
     private func loadMockTrivia() {
         self.triviaList = [
             Trivia(
@@ -138,6 +141,7 @@ class TriviaService: ObservableObject {
         selectDailyTrivia()
     }
     
+    // MARK: - Quiz Hari Ini
     private func selectDailyTrivia() {
         guard !triviaList.isEmpty else { return } //Kalau list nya kosong, function berhenti
         
@@ -147,6 +151,7 @@ class TriviaService: ObservableObject {
         self.dailyTrivia = triviaList[index] // Set trivia hari ini
     }
     
+    // MARK: - Notifikasi
     func checkNotificationStatus() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             Task { @MainActor in
@@ -158,6 +163,7 @@ class TriviaService: ObservableObject {
         }
     }
     
+    // MARK: - Request Notifikasi
     func requestNotificationPermission(completion: @escaping @Sendable (Bool) -> Void) {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in 
             Task { @MainActor in
@@ -174,6 +180,7 @@ class TriviaService: ObservableObject {
         }
     }
     
+    // MARK: - Jadwal Notifikasi
     private func scheduleDailyNotification() {
         cancelNotifications() // Matikan notif agar tidak duplikat
         
@@ -196,7 +203,7 @@ class TriviaService: ObservableObject {
         }
     }
     
-    // Hapus notifikasi yang sudah dijadwalkan
+    // MARK: Hapus notifikasi 
     private func cancelNotifications() {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["daily_trivia_notification"])
     }
@@ -220,8 +227,9 @@ class TriviaService: ObservableObject {
         }
     }
     
+    // MARK: Jawaban Trivia
     func recordTriviaAnswer(wasCorrect: Bool) {
-        guard !hasAnsweredToday else { return } // Jika belum jawab, jalankan function
+        guard !hasAnsweredToday else { return } // Jika sudah menjawab, function berhenti
         
         let calendar = Calendar.current
         let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date // Mengecek tanggal terakhir user menjawab
@@ -247,6 +255,7 @@ class TriviaService: ObservableObject {
         UserDefaults.standard.set(Date(), forKey: "trivia_last_answered_date") // Simpan tanggal terakhir menjawab ke UserDefaults
     }
 
+    // MARK: - Cek Database
     func seedDatabase() {
         #if canImport(FirebaseFirestore) // Cek apakah Firebase Firestore diimpor
         guard let db = db else { return } // Jika db kosong, function berhenti

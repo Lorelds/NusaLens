@@ -9,15 +9,17 @@ class DailyTriviaViewModel: ObservableObject {
     @Published var showingPermissionAlert = false
     @Published var animateStreak = false
     
+    // MARK: Background Tombol
     func buttonBackgroundColor(index: Int, correctIndex: Int) -> Color {
         guard answerSubmitted else {
-            return selectedOptionIndex == index ? Color.accentColor.opacity(0.08) : Color(.systemGray6)
+            return selectedOptionIndex == index ? Color.accentColor.opacity(0.08) : Color(.systemGray6) // Tombol warna sesuai pilihan user
         }
-        if index == correctIndex { return Color.green.opacity(0.1) }
-        if selectedOptionIndex == index { return Color.red.opacity(0.1) }
+        if index == correctIndex { return Color.green.opacity(0.1) } // Jika benar, warna hijau
+        if selectedOptionIndex == index { return Color.red.opacity(0.1) } // Jika salah, warna merah
         return Color(.systemGray6)
     }
     
+    // MARK: Border Tombol
     func buttonBorderColor(index: Int, correctIndex: Int) -> Color {
         guard answerSubmitted else { 
             return selectedOptionIndex == index ? Color.accentColor : Color.clear
@@ -27,6 +29,7 @@ class DailyTriviaViewModel: ObservableObject {
         return Color.clear
     }
     
+    // MARK: Submit Jawaban
     func submitAnswer(correctIndex: Int, onComplete: @escaping (Bool) -> Void) {
         guard selectedOptionIndex != nil else { return }
         
@@ -38,7 +41,7 @@ class DailyTriviaViewModel: ObservableObject {
         onComplete(isCorrect)
         
         // Trigger streak animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { 
             withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
                 self.animateStreak = true
             }

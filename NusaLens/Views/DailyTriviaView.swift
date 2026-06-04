@@ -64,7 +64,7 @@ struct DailyTriviaView: View {
                                     .background(Color.green.opacity(0.08))
                                     .cornerRadius(12)
                                 }
-                                
+                                // MARK: Pilihan Jawaban
                                 // Untuk menampilkan pilihan jawaban
                                 VStack(spacing: 12) {
                                     ForEach(0..<options.count, id: \.self) { index in // Pilihan jawaban
@@ -111,11 +111,12 @@ struct DailyTriviaView: View {
                                         .disabled(viewModel.answerSubmitted || service.hasAnsweredToday) // Disable tombol jika sudah menjawab 
                                 }
                                 
-                                if !viewModel.answerSubmitted && !service.hasAnsweredToday {
+                                // MARK: Tombol Submit
+                                if !viewModel.answerSubmitted && !service.hasAnsweredToday { // Kalau belum dijawab
                                     Button(action: {
-                                        if viewModel.selectedOptionIndex != nil {
+                                        if viewModel.selectedOptionIndex != nil { // Jika ada jawaban yang dipilih
                                             viewModel.submitAnswer(correctIndex: trivia.correctOptionIndex ?? 0) { isCorrect in
-                                                service.recordTriviaAnswer(wasCorrect: isCorrect)
+                                                service.recordTriviaAnswer(wasCorrect: isCorrect) // Menyimpan jawaban
                                             }
                                         }
                                     }) {
@@ -127,11 +128,11 @@ struct DailyTriviaView: View {
                                             .background(viewModel.selectedOptionIndex == nil ? Color.gray : Color.accentColor)
                                             .cornerRadius(12)
                                     }
-                                    .disabled(viewModel.selectedOptionIndex == nil)
+                                    .disabled(viewModel.selectedOptionIndex == nil) // Disable jika tidak ada jawaban
                                     .padding(.top, 8)
                                 }
                                 
-                                if viewModel.answerSubmitted, let explanation = trivia.explanation {
+                                if viewModel.answerSubmitted, let explanation = trivia.explanation { // Menampilkan penjelasan jika sudah menjawab
                                     VStack(alignment: .leading, spacing: 10) {
                                         Divider()
                                             .padding(.vertical, 8)
@@ -140,12 +141,12 @@ struct DailyTriviaView: View {
                                             .font(.headline)
                                             .foregroundStyle(Color.accentColor)
                                         
-                                        Text(explanation)
+                                        Text(explanation) // Menampilkan penjelasan
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                             .lineSpacing(4)
                                     }
-                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                                    .transition(.opacity.combined(with: .move(edge: .top))) // Transisi animasi
                                 }
                                 
                             } else {
@@ -161,7 +162,7 @@ struct DailyTriviaView: View {
                         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
                     } else {
                         VStack {
-                            ProgressView()
+                            ProgressView() 
                             Text("Mengambil trivia...")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -242,8 +243,9 @@ struct DailyTriviaView: View {
         }
     }
 }
+}
 
-// MARK: - Streak Card Component
+// MARK: - Komponen Streak Card
 struct StreakCardView: View {
     let currentStreak: Int
     let bestStreak: Int
