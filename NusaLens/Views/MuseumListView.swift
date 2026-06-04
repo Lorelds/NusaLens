@@ -7,23 +7,12 @@ import SwiftUI
 
 struct MuseumListView: View {
     @EnvironmentObject var service: CultureService
-    @State private var searchText = ""
+    @StateObject private var viewModel = MuseumListViewModel()
 
     // Grid columns layout
     private let columns = [
         GridItem(.adaptive(minimum: 160), spacing: 16)
     ]
-
-    var filteredMuseums: [Museum] {
-        if searchText.isEmpty {
-            return service.museums
-        }
-        return service.museums.filter { museum in
-            museum.name.localizedCaseInsensitiveContains(searchText) ||
-            museum.province.localizedCaseInsensitiveContains(searchText) ||
-            museum.region.localizedCaseInsensitiveContains(searchText)
-        }
-    }
 
     var body: some View {
         NavigationStack {
@@ -33,12 +22,12 @@ struct MuseumListView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
 
-                    TextField("Cari museum atau provinsi...", text: $searchText)
+                    TextField("Cari museum atau provinsi...", text: $viewModel.searchText)
                         .textFieldStyle(.plain)
                         .autocorrectionDisabled()
 
-                    if !searchText.isEmpty {
-                        Button(action: { searchText = "" }) {
+                    if !viewModel.searchText.isEmpty {
+                        Button(action: { viewModel.searchText = "" }) {
                             Image(systemName: "xmark.circle.fill")
                                 .foregroundStyle(.secondary)
                         }
@@ -61,7 +50,7 @@ struct MuseumListView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
-                    } else if filteredMuseums.isEmpty {
+                    } else if viewModel.filteredMuseums(from: service.museums).isEmpty {
                         VStack(spacing: 16) {
                             Image(systemName: "building.columns.circle")
                                 .font(.system(size: 64))
@@ -77,7 +66,7 @@ struct MuseumListView: View {
                     } else {
                         ScrollView {
                             LazyVGrid(columns: columns, spacing: 16) {
-                                ForEach(filteredMuseums) { museum in
+                                ForEach(viewModel.filteredMuseums(from: service.museums)) { museum in
                                     NavigationLink(value: museum) {
                                         MuseumCardView(
                                             museum: museum,

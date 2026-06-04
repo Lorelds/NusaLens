@@ -409,6 +409,69 @@ class CultureService: ObservableObject {
         }
     }
     
+    func seedMassiveMuseumData() {
+        var generatedMuseums: [Museum] = []
+        for province in ProvinceLocation.allProvinces {
+            for i in 1...3 {
+                let latOffset = Double.random(in: -0.1...0.1)
+                let lonOffset = Double.random(in: -0.1...0.1)
+                let museum = Museum(
+                    id: UUID().uuidString,
+                    name: "Museum \(province.name) \(i)",
+                    description: "Ini adalah data museum dummy otomatis untuk provinsi \(province.name).",
+                    province: province.name,
+                    region: province.region,
+                    address: "Jl. Data Dummy No. \(i), \(province.name)",
+                    imageUrl: "https://images.unsplash.com/photo-1544928147-79a2dbc1f389?auto=format&fit=crop&q=80&w=600",
+                    latitude: province.latitude + latOffset,
+                    longitude: province.longitude + lonOffset,
+                    budayaIds: []
+                )
+                generatedMuseums.append(museum)
+            }
+        }
+        
+        self.museums = generatedMuseums
+        
+        #if canImport(FirebaseFirestore)
+        if let db = db {
+            print("Uploading \(generatedMuseums.count) museum items to Firebase...")
+            for item in generatedMuseums {
+                do {
+                    try db.collection("museums").document(item.id).setData(from: item)
+                } catch {
+                    print("Error uploading museum: \(error.localizedDescription)")
+                }
+            }
+            print("Museum Upload complete!")
+        }
+        #endif
+    }
+    
+    func deleteMassiveMuseumData() {
+        let dummyItems = museums.filter { $0.description.contains("dummy otomatis") }
+        
+        self.museums.removeAll { $0.description.contains("dummy otomatis") }
+        
+        #if canImport(FirebaseFirestore)
+        if let db = db {
+            print("Deleting \(dummyItems.count) dummy museums from Firebase...")
+            for item in dummyItems {
+                db.collection("museums").document(item.id).delete { error in
+                    if let error = error {
+                        print("Error deleting dummy museum: \(error.localizedDescription)")
+                    }
+                }
+            }
+            print("Museum Deletion complete!")
+        }
+        #endif
+        
+        if self.museums.isEmpty && db == nil {
+            self.loadMockMuseums()
+        }
+    }
+    
     func addBudaya(_ item: Budaya) {
         #if canImport(FirebaseFirestore)
         if let db = db {

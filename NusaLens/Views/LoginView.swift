@@ -66,7 +66,21 @@ struct LoginView: View {
                             .padding(.top, 10)
                             
                             Button(action: {
+                                cultureService.seedMassiveMuseumData()
+                            }) {
+                                Text("Seed Dummy Museum (3/Provinsi)")
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.orange.opacity(0.8))
+                                    .cornerRadius(12)
+                            }
+                            .padding(.top, 4)
+                            
+                            Button(action: {
                                 cultureService.deleteMassiveMockData()
+                                cultureService.deleteMassiveMuseumData()
                             }) {
                                 Text("Hapus Semua Data Dummy")
                                     .font(.headline)

@@ -32,6 +32,7 @@ struct ProvinceMarker: Identifiable {
 
 struct InteractiveMapView: View {
     @EnvironmentObject var service: CultureService
+    @StateObject private var viewModel = InteractiveMapViewModel()
     
     // Initial camera position centered on Indonesia
     @State private var cameraPosition = MapCameraPosition.region(MKCoordinateRegion(
@@ -39,67 +40,20 @@ struct InteractiveMapView: View {
         span: MKCoordinateSpan(latitudeDelta: 12.0, longitudeDelta: 24.0)
     ))
     
-    @State private var selectedProvince: String? = nil
-    @State private var showSheet = false
-    
-    @State private var selectedCategory: CulturalCategory? = nil
-    @State private var searchText = ""
-    @State private var showSuggestionAlert = false
-    @State private var searchSuggestion: String? = nil
-    @State private var suggestionCoordinate: CLLocationCoordinate2D? = nil
-    
-    @State private var latitudeDelta: Double? = nil
-    
-    // Display filter
-    @State private var mapDisplayFilter: MapDisplayFilter = .all
-    @State private var isFilterExpanded = false
-    
-    @State private var selectedMuseum: Museum? = nil
-    @State private var showMuseumSheet = false
-    
-    var filteredItems: [Budaya] {
-        service.items.filter { item in
-            selectedCategory == nil || item.category == selectedCategory
-        }
-    }
-    
-    // Generate province markers dynamically from fetched items
-    var provinceMarkers: [ProvinceMarker] {
-        var markers: [ProvinceMarker] = []
-        let grouped = Dictionary(grouping: filteredItems, by: { $0.province })
-        
-        for (province, items) in grouped {
-            if let firstItem = items.first {
-                markers.append(ProvinceMarker(
-                    name: province,
-                    coordinate: firstItem.coordinate,
-                    itemCount: items.count
-                ))
-            }
-        }
-        return markers
-    }
-    
-    // Items that belong to the selected province
-    var itemsInSelectedProvince: [Budaya] {
-        guard let province = selectedProvince else { return [] }
-        return filteredItems.filter { $0.province == province }
-    }
-    
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
                 // Map Container
                 Map(position: $cameraPosition) {
                     // Province/Budaya markers — show when filter is .all or .budayaOnly
-                    if mapDisplayFilter != .museumOnly {
-                        ForEach(provinceMarkers) { marker in
+                    if viewModel.mapDisplayFilter != .museumOnly {
+                        ForEach(viewModel.provinceMarkers(from: service.items)) { marker in
                             Annotation(marker.name, coordinate: marker.coordinate) {
                                 Button(action: {
-                                    selectedProvince = marker.name
-                                    showSheet = true
+                                    viewModel.selectedProvince = marker.name
+                                    viewModel.showSheet = true
                                 }) {
-                                    let delta = latitudeDelta ?? 12.0
+                                    let delta = viewModel.latitudeDelta ?? 12.0
                                     let progress = max(0, min(1, (delta - 2.0) / 15.0))
                                     let dynamicSize: CGFloat = 44.0 - (CGFloat(progress) * 20.0) // 44 down to 24
                                     
@@ -121,14 +75,14 @@ struct InteractiveMapView: View {
                     }
                     
                     // Museum markers — show when filter is .all or .museumOnly
-                    if mapDisplayFilter != .budayaOnly {
+                    if viewModel.mapDisplayFilter != .budayaOnly {
                         ForEach(service.museums) { museum in
                             Annotation(museum.name, coordinate: museum.coordinate) {
                                 Button(action: {
-                                    selectedMuseum = museum
-                                    showMuseumSheet = true
+                                    viewModel.selectedMuseum = museum
+                                    viewModel.showMuseumSheet = true
                                 }) {
-                                    let delta = latitudeDelta ?? 12.0
+                                    let delta = viewModel.latitudeDelta ?? 12.0
                                     let progress = max(0, min(1, (delta - 2.0) / 15.0))
                                     let dynamicSize: CGFloat = 40.0 - (CGFloat(progress) * 16.0)
                                     
@@ -153,7 +107,7 @@ struct InteractiveMapView: View {
                 }
                 .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
                 .onMapCameraChange { context in
-                    latitudeDelta = context.region.span.latitudeDelta
+                    viewModel.latitudeDelta = context.region.span.latitudeDelta
                 }
                 
                 VStack(spacing: 12) {
@@ -162,15 +116,17 @@ struct InteractiveMapView: View {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(.secondary)
                         
-                        TextField("Cari provinsi atau budaya (mis. Bali)...", text: $searchText)
+                        TextField("Cari provinsi atau budaya (mis. Bali)...", text: $viewModel.searchText)
                             .textFieldStyle(.plain)
                             .autocorrectionDisabled()
                             .onSubmit {
-                                performSearch()
+                                viewModel.performSearch(items: service.items) { provName, coord in
+                                    navigateTo(province: provName, coordinate: coord)
+                                }
                             }
                         
-                        if !searchText.isEmpty {
-                            Button(action: { searchText = "" }) {
+                        if !viewModel.searchText.isEmpty {
+                            Button(action: { viewModel.searchText = "" }) {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundStyle(.secondary)
                             }
@@ -182,12 +138,12 @@ struct InteractiveMapView: View {
                         
                         Button(action: {
                             withAnimation(.spring()) {
-                                isFilterExpanded.toggle()
+                                viewModel.isFilterExpanded.toggle()
                             }
                         }) {
-                            Image(systemName: "line.3.horizontal.decrease.circle\(isFilterExpanded ? ".fill" : "")")
+                            Image(systemName: "line.3.horizontal.decrease.circle\(viewModel.isFilterExpanded ? ".fill" : "")")
                                 .font(.title3)
-                                .foregroundStyle(isFilterExpanded ? Color.accentColor : .secondary)
+                                .foregroundStyle(viewModel.isFilterExpanded ? Color.accentColor : .secondary)
                         }
                     }
                     .padding(12)
@@ -195,24 +151,24 @@ struct InteractiveMapView: View {
                     .cornerRadius(12)
                     .padding(.horizontal, 20)
                     
-                    if isFilterExpanded {
+                    if viewModel.isFilterExpanded {
                         // Category Selector Bar
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 10) {
-                                Button(action: { selectedCategory = nil }) {
+                                Button(action: { viewModel.selectedCategory = nil }) {
                                     Text("Semua")
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 8)
-                                        .background(selectedCategory == nil ? Color.accentColor : Color(.systemBackground))
-                                        .foregroundStyle(selectedCategory == nil ? .white : .primary)
+                                        .background(viewModel.selectedCategory == nil ? Color.accentColor : Color(.systemBackground))
+                                        .foregroundStyle(viewModel.selectedCategory == nil ? .white : .primary)
                                         .clipShape(Capsule())
                                         .shadow(color: Color.black.opacity(0.1), radius: 4)
                                 }
                                 
                                 ForEach(CulturalCategory.allCases) { category in
-                                    Button(action: { selectedCategory = category }) {
+                                    Button(action: { viewModel.selectedCategory = category }) {
                                         HStack(spacing: 6) {
                                             Image(systemName: category.iconName)
                                             Text(category.rawValue)
@@ -221,8 +177,8 @@ struct InteractiveMapView: View {
                                         .fontWeight(.semibold)
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 8)
-                                        .background(selectedCategory == category ? Color.accentColor : Color(.systemBackground))
-                                        .foregroundStyle(selectedCategory == category ? .white : .primary)
+                                        .background(viewModel.selectedCategory == category ? Color.accentColor : Color(.systemBackground))
+                                        .foregroundStyle(viewModel.selectedCategory == category ? .white : .primary)
                                         .clipShape(Capsule())
                                         .shadow(color: Color.black.opacity(0.1), radius: 4)
                                     }
@@ -239,7 +195,7 @@ struct InteractiveMapView: View {
                                 ForEach(MapDisplayFilter.allCases) { filter in
                                     Button(action: {
                                         withAnimation(.easeInOut(duration: 0.25)) {
-                                            mapDisplayFilter = filter
+                                            viewModel.mapDisplayFilter = filter
                                         }
                                     }) {
                                         HStack(spacing: 6) {
@@ -250,8 +206,8 @@ struct InteractiveMapView: View {
                                         .fontWeight(.semibold)
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 8)
-                                        .background(mapDisplayFilter == filter ? Color.orange : Color(.systemBackground))
-                                        .foregroundStyle(mapDisplayFilter == filter ? .white : .primary)
+                                        .background(viewModel.mapDisplayFilter == filter ? Color.orange : Color(.systemBackground))
+                                        .foregroundStyle(viewModel.mapDisplayFilter == filter ? .white : .primary)
                                         .clipShape(Capsule())
                                         .shadow(color: Color.black.opacity(0.1), radius: 4)
                                     }
@@ -267,21 +223,21 @@ struct InteractiveMapView: View {
             }
             .navigationTitle("Peta Budaya")
             .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showSheet, onDismiss: { selectedProvince = nil }) {
-                if let province = selectedProvince {
-                    ProvinceCulturalListView(province: province, items: itemsInSelectedProvince)
+            .sheet(isPresented: $viewModel.showSheet, onDismiss: { viewModel.selectedProvince = nil }) {
+                if let province = viewModel.selectedProvince {
+                    ProvinceCulturalListView(province: province, items: viewModel.itemsInSelectedProvince(from: service.items))
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
                 }
             }
-            .sheet(isPresented: $showMuseumSheet, onDismiss: { selectedMuseum = nil }) {
-                if let museum = selectedMuseum {
+            .sheet(isPresented: $viewModel.showMuseumSheet, onDismiss: { viewModel.selectedMuseum = nil }) {
+                if let museum = viewModel.selectedMuseum {
                     NavigationStack {
                         MuseumDetailView(museum: museum)
                             .toolbar {
                                 ToolbarItem(placement: .topBarTrailing) {
                                     Button("Selesai") {
-                                        showMuseumSheet = false
+                                        viewModel.showMuseumSheet = false
                                     }
                                     .fontWeight(.semibold)
                                 }
@@ -291,72 +247,28 @@ struct InteractiveMapView: View {
                     .presentationDragIndicator(.visible)
                 }
             }
-            .alert(searchSuggestion != nil ? "Apakah maksud Anda \(searchSuggestion!)?" : "Lokasi tidak ditemukan", isPresented: $showSuggestionAlert) {
-                if let prov = searchSuggestion, let coord = suggestionCoordinate {
+            .alert(viewModel.searchSuggestion != nil ? "Apakah maksud Anda \(viewModel.searchSuggestion!)?" : "Lokasi tidak ditemukan", isPresented: $viewModel.showSuggestionAlert) {
+                if let prov = viewModel.searchSuggestion, let coord = viewModel.suggestionCoordinate {
                     Button("Ya, Arahkan") {
-                        searchText = prov
+                        viewModel.searchText = prov
                         navigateTo(province: prov, coordinate: coord)
                     }
                     Button("Batal", role: .cancel) {
-                        searchSuggestion = nil
-                        suggestionCoordinate = nil
+                        viewModel.searchSuggestion = nil
+                        viewModel.suggestionCoordinate = nil
                     }
                 } else {
                     Button("OK", role: .cancel) {}
                 }
             } message: {
-                if searchSuggestion == nil {
+                if viewModel.searchSuggestion == nil {
                     Text("Coba cari dengan kata kunci lain.")
                 }
             }
         }
     }
     
-    // MARK: - Search Logic
-    private func performSearch() {
-        var query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !query.isEmpty else { return }
-        
-        // Alias mapping
-        if query == "jakarta" {
-            query = "dki jakarta"
-        } else if query == "yogyakarta" || query == "jogja" {
-            query = "di yogyakarta"
-        }
-        
-        // 1. High confidence: exact prefix or contains
-        // Search in all provinces first (allows navigating to empty provinces)
-        if let prov = ProvinceLocation.allProvinces.first(where: { $0.name.lowercased() == query || $0.name.lowercased().hasPrefix(query) || $0.name.lowercased().contains(query) }) {
-            navigateTo(province: prov.name, coordinate: CLLocationCoordinate2D(latitude: prov.latitude, longitude: prov.longitude))
-            return
-        }
-        
-        // Search in cultures
-        if let exactMatch = filteredItems.first(where: { $0.name.lowercased().hasPrefix(query) || $0.name.lowercased().contains(query) }) {
-            navigateTo(province: exactMatch.province, coordinate: exactMatch.coordinate)
-            return
-        }
-        
-        // 2. Medium confidence: Subsequence match (typo correction)
-        if let closeProv = ProvinceLocation.allProvinces.first(where: { isTypoMatch(query, target: $0.name.lowercased()) }) {
-            searchSuggestion = closeProv.name
-            suggestionCoordinate = CLLocationCoordinate2D(latitude: closeProv.latitude, longitude: closeProv.longitude)
-            showSuggestionAlert = true
-            return
-        }
-        
-        if let closeMatch = filteredItems.first(where: { isTypoMatch(query, target: $0.name.lowercased()) }) {
-            searchSuggestion = closeMatch.province
-            suggestionCoordinate = closeMatch.coordinate
-            showSuggestionAlert = true
-            return
-        }
-        
-        // 3. Low confidence: Fallback, just show alert indicating nothing found
-        searchSuggestion = nil
-        showSuggestionAlert = true
-    }
-    
+    // MARK: - Navigation Logic
     private func navigateTo(province: String, coordinate: CLLocationCoordinate2D) {
         withAnimation(.easeInOut(duration: 1.0)) {
             cameraPosition = .region(MKCoordinateRegion(
@@ -365,23 +277,9 @@ struct InteractiveMapView: View {
             ))
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            selectedProvince = province
-            showSheet = true
+            viewModel.selectedProvince = province
+            viewModel.showSheet = true
         }
-    }
-    
-    private func isTypoMatch(_ query: String, target: String) -> Bool {
-        let queryChars = Array(query)
-        let targetChars = Array(target)
-        if queryChars.count > targetChars.count { return false }
-        
-        var qIdx = 0
-        for tChar in targetChars {
-            if qIdx < queryChars.count && tChar == queryChars[qIdx] {
-                qIdx += 1
-            }
-        }
-        return qIdx == queryChars.count && queryChars.count >= 3
     }
 }
 
@@ -400,7 +298,7 @@ struct ProvinceCulturalListView: View {
                         .fontWeight(.bold)
                         .padding(.horizontal, 20)
                         .padding(.top, 24)
-                    
+                        
                     if items.isEmpty {
                         Text("Tidak ada budaya di kategori ini.")
                             .foregroundStyle(.secondary)
@@ -434,4 +332,5 @@ struct ProvinceCulturalListView: View {
 
 #Preview {
     InteractiveMapView()
+        .environmentObject(CultureService())
 }
