@@ -9,6 +9,7 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     @StateObject private var cultureService = CultureService()
     @StateObject private var authService = AuthService()
+    @StateObject private var triviaService = TriviaService()
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -44,6 +45,7 @@ struct MainTabView: View {
         }
         .environmentObject(cultureService)
         .environmentObject(authService)
+        .environmentObject(triviaService)
     }
 }
 

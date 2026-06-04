@@ -8,7 +8,7 @@ import SwiftUI
 struct LoginView: View {
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var cultureService: CultureService
-    @StateObject private var triviaService = TriviaService()
+    @EnvironmentObject var triviaService: TriviaService
     @State private var email = ""
     @State private var password = ""
     @State private var isLoginMode = true

@@ -7,7 +7,7 @@ import SwiftUI
 
 struct DailyTriviaView: View {
     @EnvironmentObject var authService: AuthService
-    @StateObject private var service = TriviaService()
+    @EnvironmentObject var service: TriviaService
     @StateObject private var cultureService = CultureService()
     
     @State private var selectedOptionIndex: Int? = nil // Indeks jawaban yang dipilih
@@ -397,4 +397,5 @@ struct StreakCardView: View {
 #Preview {
     DailyTriviaView()
         .environmentObject(AuthService())
+        .environmentObject(TriviaService())
 }
