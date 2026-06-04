@@ -9,11 +9,7 @@ struct DailyTriviaView: View {
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var service: TriviaService
     @StateObject private var cultureService = CultureService()
-    
-    @State private var selectedOptionIndex: Int? = nil // Indeks jawaban yang dipilih
-    @State private var answerSubmitted = false // Status jawaban apakah sudah dikirim
-    @State private var showingPermissionAlert = false // Status notifikasi apakah diizinkan
-    @State private var animateStreak = false // Status animasi streak
+    @StateObject private var viewModel = DailyTriviaViewModel()
     
     var body: some View {
         NavigationStack {
@@ -26,7 +22,7 @@ struct DailyTriviaView: View {
                             currentStreak: service.currentStreak,
                             bestStreak: service.bestStreak,
                             hasAnsweredToday: service.hasAnsweredToday,
-                            animate: animateStreak
+                            animate: viewModel.animateStreak
                         )
                     }
                     
@@ -55,7 +51,7 @@ struct DailyTriviaView: View {
                                     .padding(.bottom, 8)
                                 
                                 // Already answered today banner
-                                if service.hasAnsweredToday && !answerSubmitted {
+                                if service.hasAnsweredToday && !viewModel.answerSubmitted {
                                     HStack(spacing: 8) {
                                         Image(systemName: "checkmark.seal.fill")
                                             .foregroundStyle(.green)
@@ -72,8 +68,8 @@ struct DailyTriviaView: View {
                                 VStack(spacing: 12) {
                                     ForEach(0..<options.count, id: \.self) { index in
                                         Button(action: {
-                                            if !answerSubmitted && !service.hasAnsweredToday {
-                                                selectedOptionIndex = index
+                                            if !viewModel.answerSubmitted && !service.hasAnsweredToday {
+                                                viewModel.selectedOptionIndex = index
                                             }
                                         }) {
                                             HStack {
@@ -82,18 +78,18 @@ struct DailyTriviaView: View {
                                                     .fontWeight(.medium)
                                                 Spacer()
                                                 
-                                                if answerSubmitted {
+                                                if viewModel.answerSubmitted {
                                                     if index == trivia.correctOptionIndex {
                                                         Image(systemName: "checkmark.circle.fill")
                                                             .foregroundStyle(.green)
-                                                    } else if selectedOptionIndex == index {
+                                                    } else if viewModel.selectedOptionIndex == index {
                                                         Image(systemName: "xmark.circle.fill")
                                                             .foregroundStyle(.red)
                                                     }
                                                 } else {
                                                     Circle()
                                                         .strokeBorder(
-                                                            selectedOptionIndex == index ? Color.accentColor : Color.secondary.opacity(0.3),
+                                                            viewModel.selectedOptionIndex == index ? Color.accentColor : Color.secondary.opacity(0.3),
                                                             lineWidth: 2
                                                         )
                                                         .frame(width: 20, height: 20)
@@ -102,35 +98,24 @@ struct DailyTriviaView: View {
                                             .padding()
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                             .background(
-                                                buttonBackgroundColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0)
+                                                viewModel.buttonBackgroundColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0)
                                             )
                                             .cornerRadius(12)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(buttonBorderColor(index: index), lineWidth: 1.5)
+                                                    .stroke(viewModel.buttonBorderColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0), lineWidth: 1.5)
                                             )
                                         }
                                         .buttonStyle(.plain)
-                                        .disabled(answerSubmitted || service.hasAnsweredToday)
+                                        .disabled(viewModel.answerSubmitted || service.hasAnsweredToday)
                                     }
                                 }
                                 
-                                if !answerSubmitted && !service.hasAnsweredToday {
+                                if !viewModel.answerSubmitted && !service.hasAnsweredToday {
                                     Button(action: {
-                                        if selectedOptionIndex != nil {
-                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                                                answerSubmitted = true
-                                            }
-                                            let isCorrect = selectedOptionIndex == trivia.correctOptionIndex
-                                            service.recordTriviaAnswer(wasCorrect: isCorrect)
-                                            // Trigger streak animation
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                                withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
-                                                    animateStreak = true
-                                                }
-                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                                                    animateStreak = false
-                                                }
+                                        if viewModel.selectedOptionIndex != nil {
+                                            viewModel.submitAnswer(correctIndex: trivia.correctOptionIndex ?? 0) { isCorrect in
+                                                service.recordTriviaAnswer(wasCorrect: isCorrect)
                                             }
                                         }
                                     }) {
@@ -139,14 +124,14 @@ struct DailyTriviaView: View {
                                             .foregroundStyle(.white)
                                             .frame(maxWidth: .infinity)
                                             .padding()
-                                            .background(selectedOptionIndex == nil ? Color.gray : Color.accentColor)
+                                            .background(viewModel.selectedOptionIndex == nil ? Color.gray : Color.accentColor)
                                             .cornerRadius(12)
                                     }
-                                    .disabled(selectedOptionIndex == nil)
+                                    .disabled(viewModel.selectedOptionIndex == nil)
                                     .padding(.top, 8)
                                 }
                                 
-                                if answerSubmitted, let explanation = trivia.explanation {
+                                if viewModel.answerSubmitted, let explanation = trivia.explanation {
                                     VStack(alignment: .leading, spacing: 10) {
                                         Divider()
                                             .padding(.vertical, 8)
@@ -204,7 +189,7 @@ struct DailyTriviaView: View {
                                     service.requestNotificationPermission { granted in
                                         if !granted {
                                             DispatchQueue.main.async {
-                                                showingPermissionAlert = true
+                                                viewModel.showingPermissionAlert = true
                                             }
                                         }
                                     }
@@ -238,7 +223,7 @@ struct DailyTriviaView: View {
             }
             .navigationTitle("Trivia Budaya")
             .background(Color.Theme.background.ignoresSafeArea())
-            .alert("Izin Notifikasi Ditolak", isPresented: $showingPermissionAlert) {
+            .alert("Izin Notifikasi Ditolak", isPresented: $viewModel.showingPermissionAlert) {
                 Button("Buka Pengaturan") {
                     if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(settingsURL)
@@ -251,33 +236,10 @@ struct DailyTriviaView: View {
             .onAppear {
                 // Sync submitted state if already answered today
                 if service.hasAnsweredToday {
-                    answerSubmitted = false // don't show last session's answer state
+                    viewModel.answerSubmitted = false
                 }
             }
         }
-    }
-    
-    // Warna Background Tombol Pilihan Jawaban 
-    private func buttonBackgroundColor(index: Int, correctIndex: Int) -> Color {
-        guard answerSubmitted else {
-            return selectedOptionIndex == index ? Color.accentColor.opacity(0.08) : Color(.systemGray6) // Pilih jawaban
-        }
-        if index == correctIndex { return Color.green.opacity(0.1) } // Jika jawaban benar, tombol akan berwarna hijau 
-        if selectedOptionIndex == index { return Color.red.opacity(0.1) } // Jika jawaban salah, tombol akan berwarna merah 
-        return Color(.systemGray6) // Jika jawaban tidak dipilih, tombol akan berwarna abu-abu
-    }
-    
-    private func buttonBorderColor(index: Int) -> Color {
-        guard answerSubmitted else { 
-            return selectedOptionIndex == index ? Color.accentColor : Color.clear // Jika jawaban belum dikirim tombol akan berwarna aksen warna 
-        }
-        if index == trivia.correctOptionIndex { return Color.green } // Jika jawaban benar
-        if selectedOptionIndex == index { return Color.red } // Jika jawaban salah
-        return Color.clear
-    }
-    
-    private var trivia: Trivia {
-        service.dailyTrivia ?? Trivia(id: "", fact: "") 
     }
 }
 
