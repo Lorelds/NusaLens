@@ -184,10 +184,10 @@ struct DailyTriviaView: View {
                         Divider()
                         
                         Toggle(isOn: Binding(
-                            get: { service.notificationsEnabled },
+                            get: { service.notificationsEnabled }, // Untuk mengaktifkan notifikasi
                             set: { newValue in
                                 if newValue {
-                                    service.requestNotificationPermission { granted in
+                                    service.requestNotificationPermission { granted in // Meminta izin notifikasi
                                         if !granted {
                                             DispatchQueue.main.async {
                                                 viewModel.showingPermissionAlert = true
