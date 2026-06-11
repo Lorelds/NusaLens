@@ -38,7 +38,7 @@ struct Budaya: Identifiable, Codable, Hashable {
     var imageUrl: String // URL or SF Symbol or Asset Name
     var latitude: Double
     var longitude: Double
-    
+    //
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }

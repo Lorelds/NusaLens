@@ -85,7 +85,7 @@ class InteractiveMapViewModel: ObservableObject {
         showSuggestionAlert = true
     }
     
-    private func isTypoMatch(_ query: String, target: String) -> Bool {
+    func isTypoMatch(_ query: String, target: String) -> Bool {
         let queryChars = Array(query)
         let targetChars = Array(target)
         if queryChars.count > targetChars.count { return false }

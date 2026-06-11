@@ -43,9 +43,7 @@ struct InteractiveMapView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                // Map Container
                 Map(position: $cameraPosition) {
-                    // Province/Budaya markers — show when filter is .all or .budayaOnly
                     if viewModel.mapDisplayFilter != .museumOnly {
                         ForEach(viewModel.provinceMarkers(from: service.items)) { marker in
                             Annotation(marker.name, coordinate: marker.coordinate) {
@@ -55,7 +53,7 @@ struct InteractiveMapView: View {
                                 }) {
                                     let delta = viewModel.latitudeDelta ?? 12.0
                                     let progress = max(0, min(1, (delta - 2.0) / 15.0))
-                                    let dynamicSize: CGFloat = 44.0 - (CGFloat(progress) * 20.0) // 44 down to 24
+                                    let dynamicSize: CGFloat = 44.0 - (CGFloat(progress) * 20.0) 
                                     
                                     ZStack {
                                         Circle()
