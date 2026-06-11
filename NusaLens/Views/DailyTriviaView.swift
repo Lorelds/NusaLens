@@ -17,7 +17,7 @@ struct DailyTriviaView: View {
                 VStack(spacing: 24) {
                     
                     // MARK: - Streak Card
-                    if authService.isAuthenticated {
+                    if authService.isAuthenticated { // Kalau sudah login, streak muncul
                         StreakCardView(
                             currentStreak: service.currentStreak,
                             bestStreak: service.bestStreak,
@@ -27,7 +27,7 @@ struct DailyTriviaView: View {
                     }
                     
                     // MARK: - Trivia Card
-                    if let trivia = service.dailyTrivia {
+                    if let trivia = service.dailyTrivia { // Jika trivia ada
                         VStack(alignment: .leading, spacing: 20) {
                             // Card Header
                             HStack {
@@ -42,7 +42,7 @@ struct DailyTriviaView: View {
                                     .font(.title2)
                             }
                             
-                            // 
+                            // Kalau Quiz ada
                             if trivia.isQuiz, let question = trivia.question, let options = trivia.options { 
                                 Text(question)
                                     .font(.title3)
@@ -50,7 +50,7 @@ struct DailyTriviaView: View {
                                     .lineSpacing(4)
                                     .padding(.bottom, 8)
                                 
-                                // Already answered today banner
+                                // Jika sudah menjawab quiz hari ini
                                 if service.hasAnsweredToday && !viewModel.answerSubmitted {
                                     HStack(spacing: 8) {
                                         Image(systemName: "checkmark.seal.fill")
@@ -64,12 +64,13 @@ struct DailyTriviaView: View {
                                     .background(Color.green.opacity(0.08))
                                     .cornerRadius(12)
                                 }
-                                
+                                // MARK: Pilihan Jawaban
+                                // Untuk menampilkan pilihan jawaban
                                 VStack(spacing: 12) {
-                                    ForEach(0..<options.count, id: \.self) { index in
+                                    ForEach(0..<options.count, id: \.self) { index in // Pilihan jawaban
                                         Button(action: {
-                                            if !viewModel.answerSubmitted && !service.hasAnsweredToday {
-                                                viewModel.selectedOptionIndex = index
+                                            if !viewModel.answerSubmitted && !service.hasAnsweredToday { // Jika belum menjawab
+                                                viewModel.selectedOptionIndex = index // Pilihan jawaban
                                             }
                                         }) {
                                             HStack {
@@ -78,18 +79,18 @@ struct DailyTriviaView: View {
                                                     .fontWeight(.medium)
                                                 Spacer()
                                                 
-                                                if viewModel.answerSubmitted {
-                                                    if index == trivia.correctOptionIndex {
+                                                if viewModel.answerSubmitted { // Mengecek jawaban yang dikirim
+                                                    if index == trivia.correctOptionIndex { // Jika jawaban benar
                                                         Image(systemName: "checkmark.circle.fill")
                                                             .foregroundStyle(.green)
-                                                    } else if viewModel.selectedOptionIndex == index {
+                                                    } else if viewModel.selectedOptionIndex == index { // Jika jawaban salah
                                                         Image(systemName: "xmark.circle.fill")
                                                             .foregroundStyle(.red)
                                                     }
-                                                } else {
-                                                    Circle()
-                                                        .strokeBorder(
-                                                            viewModel.selectedOptionIndex == index ? Color.accentColor : Color.secondary.opacity(0.3),
+                                                } else { // Jika belum menjawab
+                                                    Circle() 
+                                                        .strokeBorder(   
+                                                            viewModel.selectedOptionIndex == index ? Color.accentColor : Color.secondary.opacity(0.3), // warnai tombol yang dipilih 
                                                             lineWidth: 2
                                                         )
                                                         .frame(width: 20, height: 20)
@@ -98,24 +99,24 @@ struct DailyTriviaView: View {
                                             .padding()
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                             .background(
-                                                viewModel.buttonBackgroundColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0)
+                                                viewModel.buttonBackgroundColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0) // Warna tombol jika jawaban benar atau salah
                                             )
                                             .cornerRadius(12)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(viewModel.buttonBorderColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0), lineWidth: 1.5)
+                                                    .stroke(viewModel.buttonBorderColor(index: index, correctIndex: trivia.correctOptionIndex ?? 0), lineWidth: 1.5) // Warna outline tombol
                                             )
                                         }
                                         .buttonStyle(.plain)
-                                        .disabled(viewModel.answerSubmitted || service.hasAnsweredToday)
-                                    }
+                                        .disabled(viewModel.answerSubmitted || service.hasAnsweredToday) // Disable tombol jika sudah menjawab 
                                 }
                                 
-                                if !viewModel.answerSubmitted && !service.hasAnsweredToday {
+                                // MARK: Tombol Submit
+                                if !viewModel.answerSubmitted && !service.hasAnsweredToday { // Kalau belum dijawab
                                     Button(action: {
-                                        if viewModel.selectedOptionIndex != nil {
+                                        if viewModel.selectedOptionIndex != nil { // Jika ada jawaban yang dipilih
                                             viewModel.submitAnswer(correctIndex: trivia.correctOptionIndex ?? 0) { isCorrect in
-                                                service.recordTriviaAnswer(wasCorrect: isCorrect)
+                                                service.recordTriviaAnswer(wasCorrect: isCorrect) // Menyimpan jawaban
                                             }
                                         }
                                     }) {
@@ -127,11 +128,11 @@ struct DailyTriviaView: View {
                                             .background(viewModel.selectedOptionIndex == nil ? Color.gray : Color.accentColor)
                                             .cornerRadius(12)
                                     }
-                                    .disabled(viewModel.selectedOptionIndex == nil)
+                                    .disabled(viewModel.selectedOptionIndex == nil) // Disable jika tidak ada jawaban
                                     .padding(.top, 8)
                                 }
                                 
-                                if viewModel.answerSubmitted, let explanation = trivia.explanation {
+                                if viewModel.answerSubmitted, let explanation = trivia.explanation { // Menampilkan penjelasan jika sudah menjawab
                                     VStack(alignment: .leading, spacing: 10) {
                                         Divider()
                                             .padding(.vertical, 8)
@@ -140,12 +141,12 @@ struct DailyTriviaView: View {
                                             .font(.headline)
                                             .foregroundStyle(Color.accentColor)
                                         
-                                        Text(explanation)
+                                        Text(explanation) // Menampilkan penjelasan
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                             .lineSpacing(4)
                                     }
-                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                                    .transition(.opacity.combined(with: .move(edge: .top))) // Transisi animasi
                                 }
                                 
                             } else {
@@ -161,7 +162,7 @@ struct DailyTriviaView: View {
                         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
                     } else {
                         VStack {
-                            ProgressView()
+                            ProgressView() 
                             Text("Mengambil trivia...")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -183,10 +184,10 @@ struct DailyTriviaView: View {
                         Divider()
                         
                         Toggle(isOn: Binding(
-                            get: { service.notificationsEnabled },
+                            get: { service.notificationsEnabled }, // Untuk mengaktifkan notifikasi
                             set: { newValue in
                                 if newValue {
-                                    service.requestNotificationPermission { granted in
+                                    service.requestNotificationPermission { granted in // Meminta izin notifikasi
                                         if !granted {
                                             DispatchQueue.main.async {
                                                 viewModel.showingPermissionAlert = true
@@ -242,8 +243,9 @@ struct DailyTriviaView: View {
         }
     }
 }
+}
 
-// MARK: - Streak Card Component
+// MARK: - Komponen Streak Card
 struct StreakCardView: View {
     let currentStreak: Int
     let bestStreak: Int

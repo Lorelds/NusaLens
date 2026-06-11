@@ -22,28 +22,31 @@ class TriviaService: ObservableObject {
     @Published var bestStreak: Int = 0
     @Published var hasAnsweredToday: Bool = false
 
-    #if canImport(FirebaseFirestore)
-    private var db: Firestore?
+    #if canImport(FirebaseFirestore) // Jika bisa menggunakan Firestore, maka akan ada db
+    private var db: Firestore? 
     #endif
     
     init() {
-        #if canImport(FirebaseFirestore)
+        #if canImport(FirebaseFirestore) // Kalau file konfigurasi Firebase ada, sambungkan ke database
         if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
             db = Firestore.firestore()
         }
         #endif
         
-        loadSettings()
-        loadStreakData()
-        fetchTrivia()
-        checkNotificationStatus()
+        loadSettings() 
+        loadStreakData() 
+        fetchTrivia() 
+        checkNotificationStatus() 
     }
     
+    // MARK: - Load Setting
     private func loadSettings() {
+        // Dari user apakah notif aktif atau tidak, kalau tidak aktif maka tidak akan ada notifikasi
         notificationsEnabled = UserDefaults.standard.bool(forKey: "trivia_notifications_enabled")
+        // Ambil jam berapa notifikasi akan dikirim
         if let savedTime = UserDefaults.standard.object(forKey: "trivia_preferred_time") as? Date {
             preferredTime = savedTime
-        } else {
+        } else { // Jika tidak ada data, default jam 8 pagi
             var components = DateComponents()
             components.hour = 8
             components.minute = 0
@@ -51,6 +54,7 @@ class TriviaService: ObservableObject {
         }
     }
     
+    // MARK: - Setting
     func saveSettings(enabled: Bool, time: Date) {
         self.notificationsEnabled = enabled
         self.preferredTime = time
@@ -64,25 +68,26 @@ class TriviaService: ObservableObject {
         }
     }
     
+    // MARK: - Fetch Data
     func fetchTrivia() {
-        #if canImport(FirebaseFirestore)
-        if let db = db {
-            db.collection("trivia").getDocuments { [weak self] querySnapshot, error in
+        #if canImport(FirebaseFirestore) // Kalau file konfigurasi Firebase ada, sambungkan ke database
+        if let db = db { // Jika database ada
+            db.collection("trivia").getDocuments { [weak self] querySnapshot, error in // Ambil data dari collection trivia
                 guard let self = self else { return }
                 
                 Task { @MainActor in
-                    if let error = error {
+                    if let error = error { // Jika ada error
                         print("Firestore trivia fetch error: \(error.localizedDescription)")
-                        self.loadMockTrivia()
+                        self.loadMockTrivia() // Load mock data
                         return
                     }
                     
-                    guard let documents = querySnapshot?.documents else {
-                        self.loadMockTrivia()
+                    guard let documents = querySnapshot?.documents else { // Jika tidak ada data
+                        self.loadMockTrivia() // Load mock data
                         return
                     }
                     
-                    let fetched = documents.compactMap { doc -> Trivia? in
+                    let fetched = documents.compactMap { doc -> Trivia? in // Ambil data
                         try? doc.data(as: Trivia.self)
                     }
                     
@@ -100,6 +105,7 @@ class TriviaService: ObservableObject {
         self.loadMockTrivia()
     }
     
+    // MARK: List Quiz
     private func loadMockTrivia() {
         self.triviaList = [
             Trivia(
@@ -138,6 +144,7 @@ class TriviaService: ObservableObject {
         selectDailyTrivia()
     }
     
+    // MARK: - Quiz Hari Ini
     private func selectDailyTrivia() {
         guard !triviaList.isEmpty else { return } //Kalau list nya kosong, function berhenti
         
@@ -147,8 +154,9 @@ class TriviaService: ObservableObject {
         self.dailyTrivia = triviaList[index] // Set trivia hari ini
     }
     
+    // MARK: - Notifikasi
     func checkNotificationStatus() {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
+        UNUserNotificationCenter.current().getNotificationSettings { settings in // Bawaan iOS untuk mengecek notifikasi
             Task { @MainActor in
                 if settings.authorizationStatus != .authorized { // Jika notifikasi tidak diizinkan
                     self.notificationsEnabled = false // Matikan notifikasi
@@ -158,6 +166,7 @@ class TriviaService: ObservableObject {
         }
     }
     
+    // MARK: - Request Notifikasi
     func requestNotificationPermission(completion: @escaping @Sendable (Bool) -> Void) {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in 
             Task { @MainActor in
@@ -174,6 +183,7 @@ class TriviaService: ObservableObject {
         }
     }
     
+    // MARK: - Jadwal Notifikasi
     private func scheduleDailyNotification() {
         cancelNotifications() // Matikan notif agar tidak duplikat
         
@@ -196,13 +206,12 @@ class TriviaService: ObservableObject {
         }
     }
     
-    // Hapus notifikasi yang sudah dijadwalkan
+    // MARK: - Hapus Notifikasi
     private func cancelNotifications() {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["daily_trivia_notification"])
     }
     
     // MARK: - Streak Logic
-    
     private func loadStreakData() {
         currentStreak = UserDefaults.standard.integer(forKey: "trivia_current_streak") // Mengecek data streak hari ini
         bestStreak = UserDefaults.standard.integer(forKey: "trivia_best_streak") // Mengecek data streak terbaik
@@ -220,36 +229,35 @@ class TriviaService: ObservableObject {
         }
     }
     
+    // MARK: Jawaban Trivia
     func recordTriviaAnswer(wasCorrect: Bool) {
-        guard !hasAnsweredToday else { return } // Jika user sudah menjawab trivia, function berhenti
+        guard !hasAnsweredToday else { return } // Jika sudah menjawab, function berhenti
         
         let calendar = Calendar.current
-        let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date
+        let lastDate = UserDefaults.standard.object(forKey: "trivia_last_answered_date") as? Date // Mengecek tanggal terakhir user menjawab
         
-        if let lastDate = lastDate {
-            if calendar.isDateInYesterday(lastDate) {
-                // Hari berturut-turut — streak lanjut
-                currentStreak += 1
-            } else if !calendar.isDateInToday(lastDate) {
-                // Melewatkan hari — streak mulai dari 1
-                currentStreak = 1
+        if let lastDate = lastDate { 
+            if calendar.isDateInYesterday(lastDate) { // Jika user menjawab trivia kemarin
+                currentStreak += 1 // Tambahkan streak
+            } else if !calendar.isDateInToday(lastDate) { // Jika user tidak menjawab trivia kemarin
+                currentStreak = 1 // Reset streak
             }
-        } else {
-            // Pertama kali menjawab
-            currentStreak = 1
+        } else { // Pertama kali menjawab, mulai dari 1
+            currentStreak = 1 
         }
         
-        if currentStreak > bestStreak {
+        if currentStreak > bestStreak { // Jika streak melewati best, maka ikut streak sekarang
             bestStreak = currentStreak
         }
         
-        hasAnsweredToday = true
+        hasAnsweredToday = true // User sudah jawab, kunci trivia
         
-        UserDefaults.standard.set(currentStreak, forKey: "trivia_current_streak")
-        UserDefaults.standard.set(bestStreak, forKey: "trivia_best_streak")
-        UserDefaults.standard.set(Date(), forKey: "trivia_last_answered_date")
+        UserDefaults.standard.set(currentStreak, forKey: "trivia_current_streak") // Simpan streak ke UserDefaults
+        UserDefaults.standard.set(bestStreak, forKey: "trivia_best_streak") // Simpan best streak ke UserDefaults
+        UserDefaults.standard.set(Date(), forKey: "trivia_last_answered_date") // Simpan tanggal terakhir menjawab ke UserDefaults
     }
 
+    // MARK: - Cek Database
     func seedDatabase() {
         #if canImport(FirebaseFirestore) // Cek apakah Firebase Firestore diimpor
         guard let db = db else { return } // Jika db kosong, function berhenti

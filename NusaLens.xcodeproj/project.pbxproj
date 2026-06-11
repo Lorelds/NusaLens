@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A111A112222333344445556 /* Museum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A111A112222333344445555 /* Museum.swift */; };
+		2B222B222222333344445556 /* ProvinceLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B222B222222333344445555 /* ProvinceLocation.swift */; };
 		695AC97435B215F48B32F9E6 /* NusaLensWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BCA9D80E349B87AEF95E0EB /* NusaLensWatchApp.swift */; };
 		6E8AB56B7BF92817E8408C7B /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 1A54F3533F477F2CD4734DEC /* FirebaseFirestore */; };
 		9835FDA087EE1B509E9C2D9A /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 0AD116E2643E8D09C27A0F56 /* FirebaseAuth */; };
@@ -42,6 +44,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1A111A112222333344445555 /* Museum.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Museum.swift; path = ../NusaLens/Models/Museum.swift; sourceTree = "<group>"; };
+		2B222B222222333344445555 /* ProvinceLocation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProvinceLocation.swift; path = ../NusaLens/Models/ProvinceLocation.swift; sourceTree = "<group>"; };
 		0FE90E099DDE04DB7890EDAD /* Trivia.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Trivia.swift; path = ../NusaLens/Models/Trivia.swift; sourceTree = "<group>"; };
 		1BCA9D80E349B87AEF95E0EB /* NusaLensWatchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NusaLensWatchApp.swift; sourceTree = "<group>"; };
 		3FD46DA72FC032EC00852A93 /* NusaLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NusaLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -123,6 +127,8 @@
 				0FE90E099DDE04DB7890EDAD /* Trivia.swift */,
 				DC7E00370E76256116226895 /* CultureService.swift */,
 				FEC22483954C99D10DEDF0DB /* TriviaService.swift */,
+							1A111A112222333344445555 /* Museum.swift */,
+				2B222B222222333344445555 /* ProvinceLocation.swift */,
 			);
 			path = NusaLensWatch;
 			sourceTree = "<group>";
@@ -350,6 +356,8 @@
 				C54AAAFF71A1DED40198E828 /* Trivia.swift in Sources */,
 				F0A036E38191749FB0C1CF7B /* CultureService.swift in Sources */,
 				D212D12F22D9E428F4624C73 /* TriviaService.swift in Sources */,
+							1A111A112222333344445556 /* Museum.swift in Sources */,
+				2B222B222222333344445556 /* ProvinceLocation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
