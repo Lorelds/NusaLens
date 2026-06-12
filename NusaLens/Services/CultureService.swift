@@ -404,7 +404,12 @@ class CultureService: ObservableObject {
         #endif
         
         // Fallback to original mock data if everything is deleted and no Firebase
-        if self.items.isEmpty && db == nil {
+        var noFirebase = true
+        #if canImport(FirebaseFirestore)
+        if db != nil { noFirebase = false }
+        #endif
+        
+        if self.items.isEmpty && noFirebase {
             self.loadMockData()
         }
     }
@@ -467,7 +472,12 @@ class CultureService: ObservableObject {
         }
         #endif
         
-        if self.museums.isEmpty && db == nil {
+        var noFirebase = true
+        #if canImport(FirebaseFirestore)
+        if db != nil { noFirebase = false }
+        #endif
+        
+        if self.museums.isEmpty && noFirebase {
             self.loadMockMuseums()
         }
     }

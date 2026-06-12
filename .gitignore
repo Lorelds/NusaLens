@@ -1,6 +1,7 @@
 # Documents and Presentation
 *.pdf
 *.pptx
+.propsoal.pdf
 
 # Screenshots and Images
 *.png
