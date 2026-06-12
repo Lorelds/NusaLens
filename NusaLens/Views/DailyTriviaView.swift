@@ -109,7 +109,8 @@ struct DailyTriviaView: View {
                                         }
                                         .buttonStyle(.plain)
                                         .disabled(viewModel.answerSubmitted || service.hasAnsweredToday) // Disable tombol jika sudah menjawab 
-                                }
+                                    }
+                                } // Menutup VStack pilihan jawaban
                                 
                                 // MARK: Tombol Submit
                                 if !viewModel.answerSubmitted && !service.hasAnsweredToday { // Kalau belum dijawab
@@ -242,7 +243,6 @@ struct DailyTriviaView: View {
             }
         }
     }
-}
 }
 
 // MARK: - Komponen Streak Card
