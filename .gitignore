@@ -1,0 +1,12 @@
+# Documents and Presentation
+*.pdf
+*.pptx
+
+# Screenshots and Images
+*.png
+
+# Session Summaries
+Next_Session_Summary.md
+
+# OS generated files
+desktop.ini
